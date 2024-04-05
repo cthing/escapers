@@ -132,6 +132,8 @@ public final class XmlEscaper {
      *
      * @param charSequence String to escape
      * @param writer Writer to which the escaped string is written
+     * @throws IOException if there was a problem writing the escaped string
+     * @throws IllegalArgumentException if the writer is {@code null}
      */
     @WillNotClose
     public static void escape(final CharSequence charSequence, final Writer writer) throws IOException {
@@ -172,6 +174,8 @@ public final class XmlEscaper {
      *
      * @param charArr Character array to escape
      * @param writer Writer to which the escaped string is written
+     * @throws IOException if there was a problem writing the escaped string
+     * @throws IllegalArgumentException if the writer is {@code null}
      */
     @WillNotClose
     public static void escape(final char[] charArr, final Writer writer) throws IOException {
