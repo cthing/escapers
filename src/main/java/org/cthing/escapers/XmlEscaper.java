@@ -33,61 +33,95 @@ import org.cthing.annotations.NoCoverageGenerated;
  *
  * <table style="border: 1px solid; border-collapse: collapse;">
  *     <caption>Character Escaping</caption>
- *     <tr>
- *         <th style="border: 1px solid; border-collapse: collapse; padding: 5px;">Character</th>
- *         <th style="border: 1px solid; border-collapse: collapse; padding: 5px;">Escape</th>
- *         <th style="border: 1px solid; border-collapse: collapse; padding: 5px;">Description</th>
- *     </tr>
- *     <tr>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">'</td>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">{@literal &apos;}</td>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Single quote</td>
- *     </tr>
- *     <tr>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">&quot;</td>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">{@literal &quot;}</td>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Double quote</td>
- *     </tr>
- *     <tr>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">&amp;</td>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">{@literal &amp;}</td>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Ampersand</td>
- *     </tr>
- *     <tr>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">&gt;</td>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">{@literal &gt;}</td>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Greater than symbol</td>
- *     </tr>
- *     <tr>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">&lt;</td>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">{@literal &lt;}</td>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Less than symbol</td>
- *     </tr>
- *     <tr>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">\n, \t, \r</td>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unchanged</td>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Newline, carriage return and tab</td>
- *     </tr>
- *     <tr>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x20 - 0x07E</td>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unchanged</td>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Printable ASCII characters</td>
- *     </tr>
- *     <tr>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x7F - 0xD7FF</td>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Numeric character entity (e.g. {@literal &#x7F;})</td>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Printable Unicode characters</td>
- *     </tr>
- *     <tr>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0xE000 - 0xFFFD</td>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Numeric character entity (e.g. {@literal &#xE000;})</td>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Printable Unicode characters</td>
- *     </tr>
- *     <tr>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x10000 - 0x10FFFF</td>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Numeric character entity (e.g. {@literal &#x10000;})</td>
- *         <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Printable Unicode surrogate pair characters</td>
- *     </tr>
+ *     <thead>
+ *         <tr>
+ *             <th style="border: 1px solid; border-collapse: collapse; padding: 5px;">Code Point</th>
+ *             <th style="border: 1px solid; border-collapse: collapse; padding: 5px;">Escape</th>
+ *             <th style="border: 1px solid; border-collapse: collapse; padding: 5px;">Description</th>
+ *         </tr>
+ *     </thead>
+ *     <tbody>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x09</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unchanged</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Tab</td>
+ *         </tr>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x0A</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unchanged</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Newline</td>
+ *         </tr>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x0D</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unchanged</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Carriage return</td>
+ *         </tr>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x20 - 0x21</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unchanged</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Printable ASCII characters</td>
+ *         </tr>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x22</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">{@literal &quot;}</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Double quote</td>
+ *         </tr>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x23 - 0x25</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unchanged</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Printable ASCII characters</td>
+ *         </tr>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x26</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">{@literal &amp;}</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Ampersand</td>
+ *         </tr>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x27</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">{@literal &apos;}</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Single quote</td>
+ *         </tr>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x28 - 0x3B</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unchanged</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Printable ASCII characters</td>
+ *         </tr>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x3C</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">{@literal &lt;}</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Less than</td>
+ *         </tr>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x3D</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unchanged</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Printable ASCII characters</td>
+ *         </tr>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x3E</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">{@literal &gt;}</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Greater than</td>
+ *         </tr>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x3F - 0x7E</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unchanged</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Printable ASCII characters</td>
+ *         </tr>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x7F - 0xD7FF</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Numeric character entity (e.g. {@literal &#x7F;})</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unicode BMP</td>
+ *         </tr>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0xE000 - 0xFFFD</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Numeric character entity (e.g. {@literal &#xE000;})</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unicode BMP</td>
+ *         </tr>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x10000 - 0x10FFFF</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Numeric character entity (e.g. {@literal &#x10000;})</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unicode surrogate pairs</td>
+ *         </tr>
+ *     </tbody>
  * </table>
  * <p>
  * The characters in the above table correspond to the <a href="https://www.w3.org/TR/xml/#charsets">valid XML
@@ -95,11 +129,6 @@ import org.cthing.annotations.NoCoverageGenerated;
  * </p>
  */
 public final class XmlEscaper {
-
-    @FunctionalInterface
-    private interface CodePointProvider {
-        int codePointAt(int index);
-    }
 
     @NoCoverageGenerated
     private XmlEscaper() {
@@ -189,8 +218,8 @@ public final class XmlEscaper {
         escape(index -> Character.codePointAt(charArr, index), charArr.length, writer);
     }
 
-    private static void escape(final CodePointProvider codePointProvider, final int length,
-                                       final Writer writer) throws IOException {
+    private static void escape(final CodePointProvider codePointProvider, final int length, final Writer writer)
+            throws IOException {
         int index = 0;
         while (index < length) {
             final int cp = codePointProvider.codePointAt(index);
@@ -208,7 +237,7 @@ public final class XmlEscaper {
                             || (cp >= 0xE000 && cp <= 0xFFFD)
                             || (cp >= 0x10000 && cp <= 0x10FFFF)) {
                         writer.write("&#x");
-                        writer.write(Integer.toHexString(cp).toUpperCase());
+                        HexUtils.writeHex(cp, writer);
                         writer.write(';');
                     }
                 }
