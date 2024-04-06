@@ -215,38 +215,22 @@ public final class JsonEscaper {
         for (int i = 0; i < length; i++) {
             final char ch = charProvider.charAt(i);
             switch (ch) {
-                case '"':
-                    writer.write("\\\"");
-                    break;
-                case '\\':
-                    writer.write("\\\\");
-                    break;
-                case '/':
-                    writer.write("\\/");
-                    break;
-                case '\n':
-                    writer.write("\\n");
-                    break;
-                case '\r':
-                    writer.write("\\r");
-                    break;
-                case '\f':
-                    writer.write("\\f");
-                    break;
-                case '\t':
-                    writer.write("\\t");
-                    break;
-                case '\b':
-                    writer.write("\\b");
-                    break;
-                default:
+                case '"' -> writer.write("\\\"");
+                case '\\' -> writer.write("\\\\");
+                case '/' -> writer.write("\\/");
+                case '\n' -> writer.write("\\n");
+                case '\r' -> writer.write("\\r");
+                case '\f' -> writer.write("\\f");
+                case '\t' -> writer.write("\\t");
+                case '\b' -> writer.write("\\b");
+                default -> {
                     if (ch > '\u001F' && ch < '\u007F') {
                         writer.write(ch);
                     } else {
                         writer.write("\\u");
                         HexUtils.writeHex4(ch, writer);
                     }
-                    break;
+                }
             }
         }
     }
