@@ -49,7 +49,7 @@ import org.cthing.annotations.NoCoverageGenerated;
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x0A</td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unchanged</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Newline</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Line feed</td>
  *         </tr>
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x0D</td>

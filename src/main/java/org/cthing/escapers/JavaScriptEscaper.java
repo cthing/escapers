@@ -43,7 +43,7 @@ import org.cthing.annotations.NoCoverageGenerated;
  *     <tbody>
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x00 - 0x07</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">&#x5C;uNNNN</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">&#x5C;uXXXX</td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">ASCII control characters</td>
  *         </tr>
  *         <tr>
@@ -59,11 +59,11 @@ import org.cthing.annotations.NoCoverageGenerated;
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x0A</td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">\n</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Newline</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Line feed</td>
  *         </tr>
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x0B</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">&#x5C;uNNNN</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">&#x5C;uXXXX</td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">ASCII control characters</td>
  *         </tr>
  *         <tr>
@@ -78,7 +78,7 @@ import org.cthing.annotations.NoCoverageGenerated;
  *         </tr>
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x0E - 0x1F</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">&#x5C;uNNNN</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">&#x5C;uXXXX</td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">ASCII control characters</td>
  *         </tr>
  *         <tr>
@@ -128,7 +128,7 @@ import org.cthing.annotations.NoCoverageGenerated;
  *         </tr>
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x7F - 0xFFFF</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">&#x5C;uNNNN</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">&#x5C;uXXXX</td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unicode BMP and surrogate pairs</td>
  *         </tr>
  *     </tbody>
