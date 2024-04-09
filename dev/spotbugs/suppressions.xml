@@ -1,9 +1,15 @@
 <FindBugsFilter>
     <Match>
+        <Bug pattern="CC_CYCLOMATIC_COMPLEXITY"/>
+    </Match>
+    <Match>
         <Bug pattern="EI_EXPOSE_REP"/>
     </Match>
     <Match>
         <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
+        <Bug pattern="ENMI_ONE_ENUM_VALUE"/>
     </Match>
     <Match>
         <Bug pattern="EXS_EXCEPTION_SOFTENING_NO_CONSTRAINTS"/>

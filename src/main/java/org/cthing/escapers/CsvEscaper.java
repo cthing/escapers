@@ -52,7 +52,7 @@ public final class CsvEscaper {
 
         try {
             final StringWriter writer = new StringWriter();
-            escape(charSequence::charAt, charSequence.length(), writer);
+            escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), writer);
             return writer.toString();
         } catch (final IOException ex) {
             throw new UncheckedIOException(ex);
@@ -76,7 +76,7 @@ public final class CsvEscaper {
             return;
         }
 
-        escape(charSequence::charAt, charSequence.length(), writer);
+        escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), writer);
     }
 
     /**
@@ -92,7 +92,7 @@ public final class CsvEscaper {
 
         try {
             final StringWriter writer = new StringWriter();
-            escape(index -> charArr[index], charArr.length, writer);
+            escape(index -> Character.codePointAt(charArr, index), charArr.length, writer);
             return writer.toString();
         } catch (final IOException ex) {
             throw new UncheckedIOException(ex);
@@ -116,27 +116,30 @@ public final class CsvEscaper {
             return;
         }
 
-        escape(index -> charArr[index], charArr.length, writer);
+        escape(index -> Character.codePointAt(charArr, index), charArr.length, writer);
     }
 
-    private static void escape(final CharProvider charProvider, final int length, final Writer writer)
+    private static void escape(final CodePointProvider codePointProvider, final int length, final Writer writer)
             throws IOException {
         final StringBuilder sb = new StringBuilder();
 
         boolean requiresQuotes = false;
-        for (int i = 0; i < length; i++) {
-            final char ch = charProvider.charAt(i);
-            switch (ch) {
+        int index = 0;
+        while (index < length) {
+            final int cp = codePointProvider.codePointAt(index);
+            final int charCount = Character.charCount(cp);
+            switch (cp) {
                 case ',', '\n', '\r' -> {
-                    sb.append(ch);
+                    sb.appendCodePoint(cp);
                     requiresQuotes = true;
                 }
                 case '"' -> {
                     sb.append("\"\"");
                     requiresQuotes = true;
                 }
-                default -> sb.append(ch);
+                default -> sb.appendCodePoint(cp);
             }
+            index += charCount;
         }
 
         if (requiresQuotes) {

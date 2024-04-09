@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
+import java.util.EnumSet;
 
 import javax.annotation.WillNotClose;
 
@@ -65,7 +66,7 @@ import org.cthing.annotations.NoCoverageGenerated;
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x0B</td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">&#x5C;uXXXX</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">ASCII control characters</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">ASCII control character</td>
  *         </tr>
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x0C</td>
@@ -84,7 +85,7 @@ import org.cthing.annotations.NoCoverageGenerated;
  *         </tr>
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x20</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unchanged or \s</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unchanged or \s if {@link Option#ESCAPE_SPACE} specified</td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Space character</td>
  *         </tr>
  *         <tr>
@@ -113,14 +114,42 @@ import org.cthing.annotations.NoCoverageGenerated;
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Printable ASCII characters</td>
  *         </tr>
  *         <tr>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x7F - 0xFFFF</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x7F</td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">&#x5C;uXXXX</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unicode BMP and surrogate pairs</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">ASCII control character</td>
+ *         </tr>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x80 - 0x10FFFF</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unchanged by default or &#x5C;uXXXX[&#x5C;uXXXX] if {@link Option#ESCAPE_NON_ASCII} specified</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">ISO Latin-1, Unicode BMP and surrogate pairs</td>
  *         </tr>
  *     </tbody>
  * </table>
  */
 public final class JavaEscaper {
+
+    /**
+     * Escaping options.
+     */
+    public enum Option {
+        /**
+         * Escape space characters. With the introduction of
+         * <a href="https://docs.oracle.com/javase/specs/jls/se15/html/jls-3.html#jls-3.10.6"> text blocks</a> in
+         * Java 15, an escape sequence ('\s') was created to indicate a space character (0x20). If this option is
+         * specified, space characters are written using the '\s' escape sequence. Without this option, space
+         * characters are written unescaped. When targeting Java 15 or newer, this option can be specified if the
+         * escaped string will be used in a text block. When targeting Java 14 or older, this option must not be
+         * specified.
+         */
+        ESCAPE_SPACE,
+
+        /**
+         * Escape characters above the ASCII range (i.e. ch &gt; 0x7F). By default, only ASCII control characters and
+         * certain ASCII printable characters are escaped. Specifying this option causes all ISO Latin-1, Unicode BMP
+         * and surrogate pair characters to be escaped (i.e. one or two &#x5C;uXXXX).
+         */
+        ESCAPE_NON_ASCII
+    }
 
     @NoCoverageGenerated
     private JavaEscaper() {
@@ -130,23 +159,17 @@ public final class JavaEscaper {
      * Applies JSON escaping to the specified string.
      *
      * @param charSequence String to escape
-     * @param escapeSpace With the introduction of
-     *      <a href="https://docs.oracle.com/javase/specs/jls/se15/html/jls-3.html#jls-3.10.6">text nlocks</a> in
-     *      Java 15, an escape sequence ('\s') was created to indicate a space character (0x20). If this parameter
-     *      is {@code true}, space characters are written using the '\s' escape sequence. If this parameter is
-     *      {@code false}, space characters are written unescaped. When targeting Java 15 or newer, this parameter
-     *      can be set to {@code true} if the escaped string will be used in a text block. When targeting Java 14 or
-     *      older, this parameter must be set to {@code false}.
+     * @param options Escaping options
      * @return Escaped string or {@code null} if {@code null} was passed in.
      */
-    public static String escape(final CharSequence charSequence, final boolean escapeSpace) {
+    public static String escape(final CharSequence charSequence, final Option... options) {
         if (charSequence == null) {
             return null;
         }
 
         try {
             final StringWriter writer = new StringWriter();
-            escape(charSequence::charAt, charSequence.length(), escapeSpace, writer);
+            escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), writer, options);
             return writer.toString();
         } catch (final IOException ex) {
             throw new UncheckedIOException(ex);
@@ -157,19 +180,13 @@ public final class JavaEscaper {
      * Applies JSON escaping to the specified string and writes the result to the specified writer.
      *
      * @param charSequence String to escape
-     * @param escapeSpace With the introduction of
-     *      <a href="https://docs.oracle.com/javase/specs/jls/se15/html/jls-3.html#jls-3.10.6">text nlocks</a> in
-     *      Java 15, an escape sequence ('\s') was created to indicate a space character (0x20). If this parameter
-     *      is {@code true}, space characters are written using the '\s' escape sequence. If this parameter is
-     *      {@code false}, space characters are written unescaped. When targeting Java 15 or newer, this parameter
-     *      can be set to {@code true} if the escaped string will be used in a text block. When targeting Java 14 or
-     *      older, this parameter must be set to {@code false}.
      * @param writer Writer to which the escaped string is written
+     * @param options Escaping options
      * @throws IOException if there was a problem writing the escaped string
      * @throws IllegalArgumentException if the writer is {@code null}
      */
     @WillNotClose
-    public static void escape(final CharSequence charSequence, final boolean escapeSpace, final Writer writer)
+    public static void escape(final CharSequence charSequence, final Writer writer, final Option... options)
             throws IOException {
         if (writer == null) {
             throw new IllegalArgumentException("writer must not be null");
@@ -178,30 +195,24 @@ public final class JavaEscaper {
             return;
         }
 
-        escape(charSequence::charAt, charSequence.length(), escapeSpace, writer);
+        escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), writer, options);
     }
 
     /**
      * Applies JSON escaping to the specified character array.
      *
      * @param charArr Character array to escape
-     * @param escapeSpace With the introduction of
-     *      <a href="https://docs.oracle.com/javase/specs/jls/se15/html/jls-3.html#jls-3.10.6">text nlocks</a> in
-     *      Java 15, an escape sequence ('\s') was created to indicate a space character (0x20). If this parameter
-     *      is {@code true}, space characters are written using the '\s' escape sequence. If this parameter is
-     *      {@code false}, space characters are written unescaped. When targeting Java 15 or newer, this parameter
-     *      can be set to {@code true} if the escaped string will be used in a text block. When targeting Java 14 or
-     *      older, this parameter must be set to {@code false}.
+     * @param options Escaping options
      * @return Escaped string or {@code null} if {@code null} was passed in.
      */
-    public static String escape(final char[] charArr, final boolean escapeSpace) {
+    public static String escape(final char[] charArr, final Option... options) {
         if (charArr == null) {
             return null;
         }
 
         try {
             final StringWriter writer = new StringWriter();
-            escape(index -> charArr[index], charArr.length, escapeSpace, writer);
+            escape(index -> Character.codePointAt(charArr, index), charArr.length, writer, options);
             return writer.toString();
         } catch (final IOException ex) {
             throw new UncheckedIOException(ex);
@@ -212,19 +223,13 @@ public final class JavaEscaper {
      * Applies JSON escaping to the specified character array and writes the result to the specified writer.
      *
      * @param charArr Character array to escape
-     * @param escapeSpace With the introduction of
-     *      <a href="https://docs.oracle.com/javase/specs/jls/se15/html/jls-3.html#jls-3.10.6">text nlocks</a> in
-     *      Java 15, an escape sequence ('\s') was created to indicate a space character (0x20). If this parameter
-     *      is {@code true}, space characters are written using the '\s' escape sequence. If this parameter is
-     *      {@code false}, space characters are written unescaped. When targeting Java 15 or newer, this parameter
-     *      can be set to {@code true} if the escaped string will be used in a text block. When targeting Java 14 or
-     *      older, this parameter must be set to {@code false}.
      * @param writer Writer to which the escaped string is written
+     * @param options Escaping options
      * @throws IOException if there was a problem writing the escaped string
      * @throws IllegalArgumentException if the writer is {@code null}
      */
     @WillNotClose
-    public static void escape(final char[] charArr, final boolean escapeSpace, final Writer writer) throws IOException {
+    public static void escape(final char[] charArr, final Writer writer, final Option... options) throws IOException {
         if (writer == null) {
             throw new IllegalArgumentException("writer must not be null");
         }
@@ -232,14 +237,20 @@ public final class JavaEscaper {
             return;
         }
 
-        escape(index -> charArr[index], charArr.length, escapeSpace, writer);
+        escape(index -> Character.codePointAt(charArr, index), charArr.length, writer, options);
     }
 
-    private static void escape(final CharProvider charProvider, final int length, final boolean escapeSpace,
-                               final Writer writer) throws IOException {
-        for (int i = 0; i < length; i++) {
-            final char ch = charProvider.charAt(i);
-            switch (ch) {
+    private static void escape(final CodePointProvider codePointProvider, final int length, final Writer writer,
+                               final Option... options) throws IOException {
+        final EnumSet<Option> opts = options.length > 0 ? EnumSet.of(options[0], options) : EnumSet.noneOf(Option.class);
+        final boolean escapeSpace = opts.contains(Option.ESCAPE_SPACE);
+        final boolean escapeNonAscii = opts.contains(Option.ESCAPE_NON_ASCII);
+
+        int index = 0;
+        while (index < length) {
+            final int cp = codePointProvider.codePointAt(index);
+            final int charCount = Character.charCount(cp);
+            switch (cp) {
                 case '"' -> writer.write("\\\"");
                 case '\\' -> writer.write("\\\\");
                 case '\n' -> writer.write("\\n");
@@ -255,14 +266,29 @@ public final class JavaEscaper {
                     }
                 }
                 default -> {
-                    if (ch > '\u001F' && ch < '\u007F') {
-                        writer.write(ch);
+                    if (charCount == 1) {
+                        if (cp < 0x20 || cp == 0x7F || (escapeNonAscii && cp > 0x7F)) {
+                            escape(cp, writer);
+                        } else {
+                            writer.write(cp);
+                        }
                     } else {
-                        writer.write("\\u");
-                        HexUtils.writeHex4(ch, writer);
+                        if (escapeNonAscii) {
+                            for (final char ch : Character.toChars(cp)) {
+                                escape(ch, writer);
+                            }
+                        } else {
+                            writer.write(Character.toChars(cp));
+                        }
                     }
                 }
             }
+            index += charCount;
         }
+    }
+
+    private static void escape(final int ch, final Writer writer) throws IOException {
+        writer.write("\\u");
+        HexUtils.writeHex4(ch, writer);
     }
 }

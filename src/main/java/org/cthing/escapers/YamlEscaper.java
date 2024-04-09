@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
+import java.util.EnumSet;
 
 import javax.annotation.WillNotClose;
 
@@ -74,7 +75,7 @@ import org.cthing.annotations.NoCoverageGenerated;
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x01 - 0x06</td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">\xXX</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Escaped 8-bit hex code</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">ASCII control characters</td>
  *         </tr>
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x07</td>
@@ -114,7 +115,7 @@ import org.cthing.annotations.NoCoverageGenerated;
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x0E - 0x1F</td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">\xXX</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Escaped 8-bit hex code</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">ASCII control characters</td>
  *         </tr>
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x20 - 0x21</td>
@@ -152,7 +153,12 @@ import org.cthing.annotations.NoCoverageGenerated;
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Printable ASCII characters</td>
  *         </tr>
  *         <tr>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x7F - 0x84</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x7F</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">\xXX</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">ASCII control characters</td>
+ *         </tr>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x80 - 0x84</td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">\xXX</td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Escaped 8-bit hex code</td>
  *         </tr>
@@ -164,7 +170,7 @@ import org.cthing.annotations.NoCoverageGenerated;
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x86 - 0x9F</td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">\xXX</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Escaped 8-bit hex code</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">ISO Latin-1</td>
  *         </tr>
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0xA0</td>
@@ -174,12 +180,12 @@ import org.cthing.annotations.NoCoverageGenerated;
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0xA1 - 0xFF</td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">\xXX</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Escaped 8-bit hex code</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">ISO Latin-1</td>
  *         </tr>
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x100 - 0x2027</td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">\&#x75;XXXX</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Escaped 16-bit hex code</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unicode BMP</td>
  *         </tr>
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x2028</td>
@@ -194,17 +200,29 @@ import org.cthing.annotations.NoCoverageGenerated;
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x202A - 0xFFFF</td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">\&#x75;XXXX</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Escaped 16-bit hex code</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unicode BMP</td>
  *         </tr>
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x10000 - 0x10FFFF</td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">\&#x55;XXXXXXXX</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Escaped 32-bit hex code</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unicode surrogate pairs</td>
  *         </tr>
  *     </tbody>
  * </table>
  */
 public final class YamlEscaper {
+
+    /**
+     * Escaping options.
+     */
+    public enum Option {
+        /**
+         * Escape characters above the ASCII range (i.e. ch &gt; 0x7F). By default, only ASCII control characters
+         * and YAML specified characters are escaped. Specifying this option causes all ISO Latin-1, Unicode
+         * BMP and surrogate pair characters to be escaped.
+         */
+        ESCAPE_NON_ASCII
+    }
 
     @AccessForTesting
     enum Quoting {
@@ -225,16 +243,17 @@ public final class YamlEscaper {
      * Applies YAML escaping to the specified string.
      *
      * @param charSequence String to escape
+     * @param options Escaping options
      * @return Escaped string or {@code null} if {@code null} was passed in.
      */
-    public static String escape(final CharSequence charSequence) {
+    public static String escape(final CharSequence charSequence, final Option... options) {
         if (charSequence == null) {
             return null;
         }
 
         try {
             final StringWriter writer = new StringWriter();
-            escape(charSequence.toString(), writer);
+            escape(charSequence.toString(), writer, options);
             return writer.toString();
         } catch (final IOException ex) {
             throw new UncheckedIOException(ex);
@@ -246,11 +265,13 @@ public final class YamlEscaper {
      *
      * @param charSequence String to escape
      * @param writer Writer to which the escaped string is written
+     * @param options Escaping options
      * @throws IOException if there was a problem writing the escaped string
      * @throws IllegalArgumentException if the writer is {@code null}
      */
     @WillNotClose
-    public static void escape(final CharSequence charSequence, final Writer writer) throws IOException {
+    public static void escape(final CharSequence charSequence, final Writer writer, final Option... options)
+            throws IOException {
         if (writer == null) {
             throw new IllegalArgumentException("writer must not be null");
         }
@@ -258,24 +279,25 @@ public final class YamlEscaper {
             return;
         }
 
-        escape(charSequence.toString(), writer);
+        escape(charSequence.toString(), writer, options);
     }
 
     /**
      * Applies YAML escaping to the specified character array.
      *
      * @param charArr Character array to escape
+     * @param options Escaping options
      * @return Escaped string or {@code null} if {@code null} was passed in. Note that invalid XML characters are
      *      not included in the output.
      */
-    public static String escape(final char[] charArr) {
+    public static String escape(final char[] charArr, final Option... options) {
         if (charArr == null) {
             return null;
         }
 
         try {
             final StringWriter writer = new StringWriter();
-            escape(new String(charArr), writer);
+            escape(new String(charArr), writer, options);
             return writer.toString();
         } catch (final IOException ex) {
             throw new UncheckedIOException(ex);
@@ -287,11 +309,12 @@ public final class YamlEscaper {
      *
      * @param charArr Character array to escape
      * @param writer Writer to which the escaped string is written
+     * @param options Escaping options
      * @throws IOException if there was a problem writing the escaped string
      * @throws IllegalArgumentException if the writer is {@code null}
      */
     @WillNotClose
-    public static void escape(final char[] charArr, final Writer writer) throws IOException {
+    public static void escape(final char[] charArr, final Writer writer, final Option... options) throws IOException {
         if (writer == null) {
             throw new IllegalArgumentException("writer must not be null");
         }
@@ -299,12 +322,15 @@ public final class YamlEscaper {
             return;
         }
 
-        escape(new String(charArr), writer);
+        escape(new String(charArr), writer, options);
     }
 
-    private static void escape(final String str, final Writer writer)
+    private static void escape(final String str, final Writer writer, final Option... options)
             throws IOException {
-        final Quoting quoting = requiresQuotes(str);
+        final EnumSet<Option> opts = options.length > 0 ? EnumSet.of(options[0], options) : EnumSet.noneOf(Option.class);
+        final boolean escapeNonAscii = opts.contains(Option.ESCAPE_NON_ASCII);
+
+        final Quoting quoting = requiresQuotes(str, escapeNonAscii);
         if (quoting == Quoting.None) {
             writer.write(str);
             return;
@@ -320,8 +346,8 @@ public final class YamlEscaper {
 
         int idx = 0;
         while (idx < str.length()) {
-            final int ch = str.codePointAt(idx);
-            switch (ch) {
+            final int cp = str.codePointAt(idx);
+            switch (cp) {
                 case 0x00 -> writer.write("\\0");
                 case 0x07 -> writer.write("\\a");
                 case 0x08 -> writer.write("\\b");
@@ -338,25 +364,35 @@ public final class YamlEscaper {
                 case 0x2028 -> writer.write("\\L");
                 case 0x2029 -> writer.write("\\P");
                 default -> {
-                    if (ch < 0x20) {
+                    if (cp < 0x20 || cp == 0x7F) {
                         writer.write("\\x");
-                        HexUtils.writeHex2(ch, writer);
-                    } else if (ch <= 0x7E) {
-                        writer.write(ch);
-                    } else if (ch <= 0xFF) {
-                        writer.write("\\x");
-                        HexUtils.writeHex2(ch, writer);
-                    } else if (ch <= 0xFFFF) {
-                        writer.write("\\u");
-                        HexUtils.writeHex4(ch, writer);
+                        HexUtils.writeHex2(cp, writer);
+                    } else if (cp <= 0x7E) {
+                        writer.write(cp);
                     } else {
-                        writer.write("\\U");
-                        HexUtils.writeHex8(ch, writer);
+                        if (escapeNonAscii) {
+                            if (cp <= 0xFF) {
+                                writer.write("\\x");
+                                HexUtils.writeHex2(cp, writer);
+                            } else if (cp <= 0xFFFF) {
+                                writer.write("\\u");
+                                HexUtils.writeHex4(cp, writer);
+                            } else {
+                                writer.write("\\U");
+                                HexUtils.writeHex8(cp, writer);
+                            }
+                        } else {
+                            if (cp <= 0xFFFF) {
+                                writer.write(cp);
+                            } else {
+                                writer.write(Character.toChars(cp));
+                            }
+                        }
                     }
                 }
             }
 
-            idx += Character.charCount(ch);
+            idx += Character.charCount(cp);
         }
 
         writer.write('"');
@@ -367,10 +403,11 @@ public final class YamlEscaper {
      * escapes must be double-quoted. If the string only contains YAML indicator characters, it can be single-quoted.
      *
      * @param str String to test
+     * @param escapeNonAscii {@code true} if non-ASCII characters should be escaped
      * @return Whether the string requires single, double or no quotes.
      */
     @AccessForTesting
-    static Quoting requiresQuotes(final String str) {
+    static Quoting requiresQuotes(final String str, final boolean escapeNonAscii) {
         if (str.isEmpty()) {
             return Quoting.Single;
         }
@@ -382,15 +419,25 @@ public final class YamlEscaper {
 
         int idx = 0;
         while (idx < str.length()) {
-            final int ch = str.codePointAt(idx);
+            final int cp = str.codePointAt(idx);
 
-            if (SPECIAL_CHARS.indexOf(ch) != -1) {
+            if (SPECIAL_CHARS.indexOf(cp) != -1) {
                 needsSingle = true;
-            } else if (ch < 0x20 || ch > 0x7E || ch == '"' || ch == '\'' || ch == '\\') {
+            } else if (cp < 0x20
+                    || cp == 0x22
+                    || cp == 0x2F
+                    || cp == 0x5C
+                    || cp == 0x7F
+                    || cp == 0x85
+                    || cp == 0xA0
+                    || cp == 0x2028
+                    || cp == 0x2029) {
+                return Quoting.Double;
+            } else if (cp > 0x7F && escapeNonAscii) {
                 return Quoting.Double;
             }
 
-            idx += Character.charCount(ch);
+            idx += Character.charCount(cp);
         }
 
         return needsSingle ? Quoting.Single : Quoting.None;

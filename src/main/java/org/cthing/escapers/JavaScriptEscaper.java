@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
+import java.util.EnumSet;
 
 import javax.annotation.WillNotClose;
 
@@ -64,7 +65,7 @@ import org.cthing.annotations.NoCoverageGenerated;
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x0B</td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">&#x5C;uXXXX</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">ASCII control characters</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">ASCII control character</td>
  *         </tr>
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x0C</td>
@@ -127,14 +128,31 @@ import org.cthing.annotations.NoCoverageGenerated;
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Printable ASCII characters</td>
  *         </tr>
  *         <tr>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x7F - 0xFFFF</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x7F</td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">&#x5C;uXXXX</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unicode BMP and surrogate pairs</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">ASCII control character</td>
+ *         </tr>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x80 - 0x10FFFF</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unchanged by default or &#x5C;uXXXX[&#x5C;uXXXX] if {@link Option#ESCAPE_NON_ASCII} specified</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">ISO Latin-1, Unicode BMP and surrogate pairs</td>
  *         </tr>
  *     </tbody>
  * </table>
  */
 public final class JavaScriptEscaper {
+
+    /**
+     * Escaping options.
+     */
+    public enum Option {
+        /**
+         * Escape characters above the ASCII range (i.e. ch &gt; 0x7F). By default, only ASCII control characters
+         * and certain printable ASCII characters are escaped. Specifying this option causes all ISO Latin-1, Unicode
+         * BMP and surrogate pair characters to be escaped (i.e. one or two &#x5C;uXXXX).
+         */
+        ESCAPE_NON_ASCII
+    }
 
     @NoCoverageGenerated
     private JavaScriptEscaper() {
@@ -144,16 +162,17 @@ public final class JavaScriptEscaper {
      * Applies JavaScript escaping to the specified string.
      *
      * @param charSequence String to escape
+     * @param options Escaping options
      * @return Escaped string or {@code null} if {@code null} was passed in.
      */
-    public static String escape(final CharSequence charSequence) {
+    public static String escape(final CharSequence charSequence, final Option... options) {
         if (charSequence == null) {
             return null;
         }
 
         try {
             final StringWriter writer = new StringWriter();
-            escape(charSequence::charAt, charSequence.length(), writer);
+            escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), writer, options);
             return writer.toString();
         } catch (final IOException ex) {
             throw new UncheckedIOException(ex);
@@ -165,11 +184,13 @@ public final class JavaScriptEscaper {
      *
      * @param charSequence String to escape
      * @param writer Writer to which the escaped string is written
+     * @param options Escaping options
      * @throws IOException if there was a problem writing the escaped string
      * @throws IllegalArgumentException if the writer is {@code null}
      */
     @WillNotClose
-    public static void escape(final CharSequence charSequence, final Writer writer) throws IOException {
+    public static void escape(final CharSequence charSequence, final Writer writer, final Option... options)
+            throws IOException {
         if (writer == null) {
             throw new IllegalArgumentException("writer must not be null");
         }
@@ -177,23 +198,24 @@ public final class JavaScriptEscaper {
             return;
         }
 
-        escape(charSequence::charAt, charSequence.length(), writer);
+        escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), writer, options);
     }
 
     /**
      * Applies JavaScript escaping to the specified character array.
      *
      * @param charArr Character array to escape
+     * @param options Escaping options
      * @return Escaped string or {@code null} if {@code null} was passed in.
      */
-    public static String escape(final char[] charArr) {
+    public static String escape(final char[] charArr, final Option... options) {
         if (charArr == null) {
             return null;
         }
 
         try {
             final StringWriter writer = new StringWriter();
-            escape(index -> charArr[index], charArr.length, writer);
+            escape(index -> Character.codePointAt(charArr, index), charArr.length, writer, options);
             return writer.toString();
         } catch (final IOException ex) {
             throw new UncheckedIOException(ex);
@@ -205,11 +227,12 @@ public final class JavaScriptEscaper {
      *
      * @param charArr Character array to escape
      * @param writer Writer to which the escaped string is written
+     * @param options Escaping options
      * @throws IOException if there was a problem writing the escaped string
      * @throws IllegalArgumentException if the writer is {@code null}
      */
     @WillNotClose
-    public static void escape(final char[] charArr, final Writer writer) throws IOException {
+    public static void escape(final char[] charArr, final Writer writer, final Option... options) throws IOException {
         if (writer == null) {
             throw new IllegalArgumentException("writer must not be null");
         }
@@ -217,14 +240,19 @@ public final class JavaScriptEscaper {
             return;
         }
 
-        escape(index -> charArr[index], charArr.length, writer);
+        escape(index -> Character.codePointAt(charArr, index), charArr.length, writer, options);
     }
 
-    private static void escape(final CharProvider charProvider, final int length, final Writer writer)
-            throws IOException {
-        for (int i = 0; i < length; i++) {
-            final char ch = charProvider.charAt(i);
-            switch (ch) {
+    private static void escape(final CodePointProvider codePointProvider, final int length, final Writer writer,
+                               final Option... options) throws IOException {
+        final EnumSet<Option> opts = options.length > 0 ? EnumSet.of(options[0], options) : EnumSet.noneOf(Option.class);
+        final boolean escapeNonAscii = opts.contains(Option.ESCAPE_NON_ASCII);
+
+        int index = 0;
+        while (index < length) {
+            final int cp = codePointProvider.codePointAt(index);
+            final int charCount = Character.charCount(cp);
+            switch (cp) {
                 case '"' -> writer.write("\\\"");
                 case '\'' -> writer.write("\\'");
                 case '\\' -> writer.write("\\\\");
@@ -235,14 +263,29 @@ public final class JavaScriptEscaper {
                 case '\t' -> writer.write("\\t");
                 case '\b' -> writer.write("\\b");
                 default -> {
-                    if (ch > '\u001F' && ch < '\u007F') {
-                        writer.write(ch);
+                    if (charCount == 1) {
+                        if (cp < 0x20 || cp == 0x7F || (escapeNonAscii && cp > 0x7F)) {
+                            escape(cp, writer);
+                        } else {
+                            writer.write(cp);
+                        }
                     } else {
-                        writer.write("\\u");
-                        HexUtils.writeHex4(ch, writer);
+                        if (escapeNonAscii) {
+                            for (final char ch : Character.toChars(cp)) {
+                                escape(ch, writer);
+                            }
+                        } else {
+                            writer.write(Character.toChars(cp));
+                        }
                     }
                 }
             }
+            index += charCount;
         }
+    }
+
+    private static void escape(final int ch, final Writer writer) throws IOException {
+        writer.write("\\u");
+        HexUtils.writeHex4(ch, writer);
     }
 }

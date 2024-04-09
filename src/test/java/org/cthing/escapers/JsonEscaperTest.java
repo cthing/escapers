@@ -18,6 +18,7 @@ package org.cthing.escapers;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -33,7 +34,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 @SuppressWarnings({ "UnnecessaryUnicodeEscape", "DataFlowIssue" })
 public class JsonEscaperTest {
 
-    public static Stream<Arguments> charSequenceProvider() {
+    public static Stream<Arguments> charSequenceProviderNonAscii() {
         return Stream.of(
                 arguments("", ""),
                 arguments("   ", "   "),
@@ -54,9 +55,40 @@ public class JsonEscaperTest {
         );
     }
 
+    public static Stream<Arguments> charSequenceProviderAscii() {
+        return Stream.of(
+                arguments("", ""),
+                arguments("   ", "   "),
+                arguments("Hello World", "Hello World"),
+                arguments("Hello World\n", "Hello World\\n"),
+                arguments("Hello World\r\n", "Hello World\\r\\n"),
+                arguments("Hello\tWorld", "Hello\\tWorld"),
+                arguments("Hello World\f", "Hello World\\f"),
+                arguments("Hello World\b", "Hello World\\b"),
+                arguments("Hello \"World\"", "Hello \\\"World\\\""),
+                arguments("https://www.cthing.com/foo", "https:\\/\\/www.cthing.com\\/foo"),
+                arguments("This \\ That", "This \\\\ That"),
+                arguments("Hello \u1E80orld", "Hello \u1E80orld"),
+                arguments("Hello \uD834\uDD1E", "Hello \uD834\uDD1E"),
+                arguments("He didn't say, \"stop!\"", "He didn't say, \\\"stop!\\\""),
+                arguments("\"foo\" isn't \"bar\". specials: \b\r\n\f\t\\/",
+                          "\\\"foo\\\" isn't \\\"bar\\\". specials: \\b\\r\\n\\f\\t\\\\\\/")
+        );
+    }
+
     @ParameterizedTest
-    @MethodSource("charSequenceProvider")
-    public void testEscapeCharSequence(final String actual, final String expected) throws IOException {
+    @MethodSource("charSequenceProviderNonAscii")
+    public void testEscapeCharSequenceNonAscii(final String actual, final String expected) throws IOException {
+        assertThat(JsonEscaper.escape(actual, JsonEscaper.Option.ESCAPE_NON_ASCII)).isEqualTo(expected);
+
+        final StringWriter writer = new StringWriter();
+        JsonEscaper.escape(actual, writer, JsonEscaper.Option.ESCAPE_NON_ASCII);
+        assertThat(writer).hasToString(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("charSequenceProviderAscii")
+    public void testEscapeCharSequenceAscii(final String actual, final String expected) throws IOException {
         assertThat(JsonEscaper.escape(actual)).isEqualTo(expected);
 
         final StringWriter writer = new StringWriter();
@@ -65,8 +97,18 @@ public class JsonEscaperTest {
     }
 
     @ParameterizedTest
-    @MethodSource("charSequenceProvider")
-    public void testEscapeCharArray(final String actual, final String expected) throws IOException {
+    @MethodSource("charSequenceProviderNonAscii")
+    public void testEscapeCharArrayNonAscii(final String actual, final String expected) throws IOException {
+        assertThat(JsonEscaper.escape(actual.toCharArray(), JsonEscaper.Option.ESCAPE_NON_ASCII)).isEqualTo(expected);
+
+        final StringWriter writer = new StringWriter();
+        JsonEscaper.escape(actual.toCharArray(), writer, JsonEscaper.Option.ESCAPE_NON_ASCII);
+        assertThat(writer).hasToString(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("charSequenceProviderAscii")
+    public void testEscapeCharArrayAscii(final String actual, final String expected) throws IOException {
         assertThat(JsonEscaper.escape(actual.toCharArray())).isEqualTo(expected);
 
         final StringWriter writer = new StringWriter();
@@ -85,7 +127,7 @@ public class JsonEscaperTest {
         JsonEscaper.escape((char[])null, writer);
         assertThat(writer.toString()).isEmpty();
 
-        assertThatIllegalArgumentException().isThrownBy(() -> JsonEscaper.escape("hello", null));
-        assertThatIllegalArgumentException().isThrownBy(() -> JsonEscaper.escape("hello".toCharArray(), null));
+        assertThatIllegalArgumentException().isThrownBy(() -> JsonEscaper.escape("hello", (Writer)null));
+        assertThatIllegalArgumentException().isThrownBy(() -> JsonEscaper.escape("hello".toCharArray(), (Writer)null));
     }
 }

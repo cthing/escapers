@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
+import java.util.EnumSet;
 
 import javax.annotation.WillNotClose;
 
@@ -28,7 +29,7 @@ import org.cthing.annotations.NoCoverageGenerated;
 
 /**
  * Escapes strings and character arrays using <a href="https://www.w3.org/TR/xml/">XML 1.0</a> entities. For example,
- * calling the {@link #escape(CharSequence)} with the string "this &amp; that" produces the string
+ * calling the {@link #escape(CharSequence, Option...)} with the string "this &amp; that" produces the string
  * "this {@literal &amp;} that". Characters are escaped according to the following table:
  *
  * <table style="border: 1px solid; border-collapse: collapse;">
@@ -107,18 +108,42 @@ import org.cthing.annotations.NoCoverageGenerated;
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Printable ASCII characters</td>
  *         </tr>
  *         <tr>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x7F - 0xD7FF</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Numeric character entity (e.g. {@literal &#x7F;})</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x7F</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">
+ *                 Numeric character entity (e.g. {@literal &#x7F;})
+ *             </td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">ASCII control character</td>
+ *         </tr>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x80 - 0xFF</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">
+ *                 Unchanged by default or numeric character entity (e.g. {@literal &#x84;})
+ *                 if {@link Option#ESCAPE_NON_ASCII} specified
+ *             </td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">ISO Latin-1</td>
+ *         </tr>
+ *         <tr>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x100 - 0xD7FF</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">
+ *                 Unchanged by default or numeric character entity (e.g. {@literal &#x7F;})
+ *                 if {@link Option#ESCAPE_NON_ASCII} specified
+ *             </td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unicode BMP</td>
  *         </tr>
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0xE000 - 0xFFFD</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Numeric character entity (e.g. {@literal &#xE000;})</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">
+ *                 Unchanged by default or numeric character entity (e.g. {@literal &#xE000;})
+ *                 if {@link Option#ESCAPE_NON_ASCII} specified
+ *             </td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unicode BMP</td>
  *         </tr>
  *         <tr>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">0x10000 - 0x10FFFF</td>
- *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Numeric character entity (e.g. {@literal &#x10000;})</td>
+ *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">
+ *                 Unchanged by default or numeric character entity (e.g. {@literal &#x10000;})
+ *                 if {@link Option#ESCAPE_NON_ASCII} specified
+ *             </td>
  *             <td style="border: 1px solid; border-collapse: collapse; padding: 5px;">Unicode surrogate pairs</td>
  *         </tr>
  *     </tbody>
@@ -130,6 +155,18 @@ import org.cthing.annotations.NoCoverageGenerated;
  */
 public final class XmlEscaper {
 
+    /**
+     * Escaping options.
+     */
+    public enum Option {
+        /**
+         * Escape characters above the ASCII range (i.e. ch &gt; 0x7F). By default, only ASCII control characters
+         * and certain printable ASCII characters are escaped. Specifying this option causes all ISO Latin-1,
+         * Unicode BMP and surrogate pair characters to be escaped.
+         */
+        ESCAPE_NON_ASCII
+    }
+
     @NoCoverageGenerated
     private XmlEscaper() {
     }
@@ -138,17 +175,18 @@ public final class XmlEscaper {
      * Applies XML escaping to the specified string.
      *
      * @param charSequence String to escape
+     * @param options Escaping options
      * @return Escaped string or {@code null} if {@code null} was passed in. Note that invalid XML characters are
      *      not included in the output.
      */
-    public static String escape(final CharSequence charSequence) {
+    public static String escape(final CharSequence charSequence, final Option... options) {
         if (charSequence == null) {
             return null;
         }
 
         try {
             final StringWriter writer = new StringWriter();
-            escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), writer);
+            escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), writer, options);
             return writer.toString();
         } catch (final IOException ex) {
             throw new UncheckedIOException(ex);
@@ -161,11 +199,13 @@ public final class XmlEscaper {
      *
      * @param charSequence String to escape
      * @param writer Writer to which the escaped string is written
+     * @param options Escaping options
      * @throws IOException if there was a problem writing the escaped string
      * @throws IllegalArgumentException if the writer is {@code null}
      */
     @WillNotClose
-    public static void escape(final CharSequence charSequence, final Writer writer) throws IOException {
+    public static void escape(final CharSequence charSequence, final Writer writer, final Option... options)
+            throws IOException {
         if (writer == null) {
             throw new IllegalArgumentException("writer must not be null");
         }
@@ -173,24 +213,25 @@ public final class XmlEscaper {
             return;
         }
 
-        escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), writer);
+        escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), writer, options);
     }
 
     /**
      * Applies XML escaping to the specified character array.
      *
      * @param charArr Character array to escape
+     * @param options Escaping options
      * @return Escaped string or {@code null} if {@code null} was passed in. Note that invalid XML characters are
      *      not included in the output.
      */
-    public static String escape(final char[] charArr) {
+    public static String escape(final char[] charArr, final Option... options) {
         if (charArr == null) {
             return null;
         }
 
         try {
             final StringWriter writer = new StringWriter();
-            escape(index -> Character.codePointAt(charArr, index), charArr.length, writer);
+            escape(index -> Character.codePointAt(charArr, index), charArr.length, writer, options);
             return writer.toString();
         } catch (final IOException ex) {
             throw new UncheckedIOException(ex);
@@ -203,11 +244,12 @@ public final class XmlEscaper {
      *
      * @param charArr Character array to escape
      * @param writer Writer to which the escaped string is written
+     * @param options Escaping options
      * @throws IOException if there was a problem writing the escaped string
      * @throws IllegalArgumentException if the writer is {@code null}
      */
     @WillNotClose
-    public static void escape(final char[] charArr, final Writer writer) throws IOException {
+    public static void escape(final char[] charArr, final Writer writer, final Option... options) throws IOException {
         if (writer == null) {
             throw new IllegalArgumentException("writer must not be null");
         }
@@ -215,11 +257,14 @@ public final class XmlEscaper {
             return;
         }
 
-        escape(index -> Character.codePointAt(charArr, index), charArr.length, writer);
+        escape(index -> Character.codePointAt(charArr, index), charArr.length, writer, options);
     }
 
-    private static void escape(final CodePointProvider codePointProvider, final int length, final Writer writer)
-            throws IOException {
+    private static void escape(final CodePointProvider codePointProvider, final int length, final Writer writer,
+                               final Option... options) throws IOException {
+        final EnumSet<Option> opts = options.length > 0 ? EnumSet.of(options[0], options) : EnumSet.noneOf(Option.class);
+        final boolean escapeNonAscii = opts.contains(Option.ESCAPE_NON_ASCII);
+
         int index = 0;
         while (index < length) {
             final int cp = codePointProvider.codePointAt(index);
@@ -231,18 +276,32 @@ public final class XmlEscaper {
                 case '>' -> writer.write("&gt;");
                 case '\n', '\t', '\r' -> writer.write(cp);
                 default -> {
-                    if (cp > 0x001F && cp < 0x007F) {
+                    if (cp > 0x1F && cp < 0x7F) {
                         writer.write(cp);
-                    } else if ((cp >= 0x007F && cp <= 0xD7FF)
-                            || (cp >= 0xE000 && cp <= 0xFFFD)
-                            || (cp >= 0x10000 && cp <= 0x10FFFF)) {
-                        writer.write("&#x");
-                        HexUtils.writeHex(cp, writer);
-                        writer.write(';');
+                    } else if (cp == 0x7F) {
+                        escape(cp, writer);
+                    } else if (escapeNonAscii) {
+                        if ((cp >= 0x80 && cp <= 0xD7FF)
+                                || (cp >= 0xE000 && cp <= 0xFFFD)
+                                || (cp >= 0x10000 && cp <= 0x10FFFF)) {
+                            escape(cp, writer);
+                        }
+                    } else {
+                        if ((cp >= 0x80 && cp <= 0xD7FF) || (cp >= 0xE000 && cp <= 0xFFFD)) {
+                            writer.write(cp);
+                        } else if (cp >= 0x10000 && cp <= 0x10FFFF) {
+                            writer.write(Character.toChars(cp));
+                        }
                     }
                 }
             }
             index += Character.charCount(cp);
         }
+    }
+
+    private static void escape(final int cp, final Writer writer) throws IOException {
+        writer.write("&#x");
+        HexUtils.writeHex(cp, writer);
+        writer.write(';');
     }
 }
