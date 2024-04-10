@@ -159,12 +159,24 @@ public final class XmlEscaper {
      * Escaping options.
      */
     public enum Option {
+
+        /**
+         * Use decimal for numerical character entities (i.e. &amp;#DDDD;). By default, this library uses hexidecimal
+         * (i.e. &#xHHH;) for numerical character entities.
+         */
+        USE_DECIMAL,
+
         /**
          * Escape characters above the ASCII range (i.e. ch &gt; 0x7F). By default, only ASCII control characters
          * and certain printable ASCII characters are escaped. Specifying this option causes all ISO Latin-1,
          * Unicode BMP and surrogate pair characters to be escaped.
          */
         ESCAPE_NON_ASCII
+    }
+
+    @FunctionalInterface
+    private interface CharEscaper {
+        void escape(int cp, Writer writer) throws IOException;
     }
 
     @NoCoverageGenerated
@@ -264,6 +276,8 @@ public final class XmlEscaper {
                                final Option... options) throws IOException {
         final EnumSet<Option> opts = options.length > 0 ? EnumSet.of(options[0], options) : EnumSet.noneOf(Option.class);
         final boolean escapeNonAscii = opts.contains(Option.ESCAPE_NON_ASCII);
+        final CharEscaper charEscaper = opts.contains(Option.USE_DECIMAL)
+                                        ? XmlEscaper::escapeDecimal : XmlEscaper::escapeHex;
 
         int index = 0;
         while (index < length) {
@@ -279,12 +293,12 @@ public final class XmlEscaper {
                     if (cp > 0x1F && cp < 0x7F) {
                         writer.write(cp);
                     } else if (cp == 0x7F) {
-                        escape(cp, writer);
+                        charEscaper.escape(cp, writer);
                     } else if (escapeNonAscii) {
                         if ((cp >= 0x80 && cp <= 0xD7FF)
                                 || (cp >= 0xE000 && cp <= 0xFFFD)
                                 || (cp >= 0x10000 && cp <= 0x10FFFF)) {
-                            escape(cp, writer);
+                            charEscaper.escape(cp, writer);
                         }
                     } else {
                         if ((cp >= 0x80 && cp <= 0xD7FF) || (cp >= 0xE000 && cp <= 0xFFFD)) {
@@ -299,9 +313,15 @@ public final class XmlEscaper {
         }
     }
 
-    private static void escape(final int cp, final Writer writer) throws IOException {
+    private static void escapeHex(final int cp, final Writer writer) throws IOException {
         writer.write("&#x");
         HexUtils.writeHex(cp, writer);
+        writer.write(';');
+    }
+
+    private static void escapeDecimal(final int cp, final Writer writer) throws IOException {
+        writer.write("&#");
+        writer.write(String.valueOf(cp));
         writer.write(';');
     }
 }

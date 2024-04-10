@@ -139,6 +139,14 @@ public class XmlEscaperTest {
     }
 
     @Test
+    public void testDecimalEscapes() {
+        assertThat(XmlEscaper.escape("Hello \u1234", XmlEscaper.Option.ESCAPE_NON_ASCII)).isEqualTo("Hello &#x1234;");
+        assertThat(XmlEscaper.escape("Hello \u1234",
+                                     XmlEscaper.Option.ESCAPE_NON_ASCII, XmlEscaper.Option.USE_DECIMAL))
+                .isEqualTo("Hello &#4660;");
+    }
+
+    @Test
     public void testErrors() throws IOException {
         assertThat(XmlEscaper.escape((CharSequence)null)).isNull();
         assertThat(XmlEscaper.escape((char[])null)).isNull();
