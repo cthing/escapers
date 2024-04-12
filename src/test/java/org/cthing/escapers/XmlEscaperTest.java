@@ -19,10 +19,15 @@ package org.cthing.escapers;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.aggregator.AggregateWith;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -34,7 +39,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 @SuppressWarnings({ "UnnecessaryUnicodeEscape", "DataFlowIssue" })
 public class XmlEscaperTest {
 
-    public static Stream<Arguments> charSequenceProviderNonAscii() {
+    public static Stream<Arguments> escapeProvider() {
         return Stream.of(
                 arguments("", ""),
                 arguments("  ", "  "),
@@ -42,108 +47,100 @@ public class XmlEscaperTest {
                 arguments("Z", "Z"),
                 arguments("~", "~"),
                 arguments("'", "&apos;"),
+                arguments("'", "&apos;", XmlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("&", "&amp;"),
+                arguments("&", "&amp;", XmlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("<", "&lt;"),
+                arguments("<", "&lt;", XmlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments(">", "&gt;"),
+                arguments(">", "&gt;", XmlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("\n", "\n"),
+                arguments("\n", "\n", XmlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("\t", "\t"),
+                arguments("\t", "\t", XmlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("\r", "\r"),
+                arguments("\r", "\r", XmlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a<b>c\"d'e&f", "a&lt;b&gt;c&quot;d&apos;e&amp;f"),
+                arguments("a<b>c\"d'e&f", "a&lt;b&gt;c&quot;d&apos;e&amp;f", XmlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\tb\rc\nd", "a\tb\rc\nd"),
+                arguments("a\tb\rc\nd", "a\tb\rc\nd", XmlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\u0000b", "ab"),
+                arguments("a\u0000b", "ab", XmlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("\u0000", ""),
+                arguments("\u0000", "", XmlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("\u001F", ""),
+                arguments("\u001F", "", XmlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("\uFFFF", ""),
+                arguments("\uFFFF", "", XmlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("\u007F", "&#x7F;"),
-                arguments("\uD7FF", "&#xD7FF;"),
-                arguments("\uE000", "&#xE000;"),
-                arguments("\uFFFD", "&#xFFFD;"),
-                arguments("\uD83D\uDE03", "&#x1F603;"),
-                arguments("a\u0001\u0008\u000b\u000c\u000e\u001fb", "ab"),
-                arguments("a\u007e\u007f\u0084\u0085\u0086\u009f\u00a0b", "a\u007e&#x7F;&#x84;&#x85;&#x86;&#x9F;&#xA0;b"),
-                arguments("a\ud7ff\ud800 \udfff \ue000b", "a&#xD7FF;  &#xE000;b"),
-                arguments("a\ufffd\ufffe\uffffb", "a&#xFFFD;b")
-        );
-    }
-
-    public static Stream<Arguments> charSequenceProviderAscii() {
-        return Stream.of(
-                arguments("", ""),
-                arguments("  ", "  "),
-                arguments("a", "a"),
-                arguments("Z", "Z"),
-                arguments("~", "~"),
-                arguments("'", "&apos;"),
-                arguments("&", "&amp;"),
-                arguments("<", "&lt;"),
-                arguments(">", "&gt;"),
-                arguments("\n", "\n"),
-                arguments("\t", "\t"),
-                arguments("\r", "\r"),
-                arguments("a<b>c\"d'e&f", "a&lt;b&gt;c&quot;d&apos;e&amp;f"),
-                arguments("a\tb\rc\nd", "a\tb\rc\nd"),
-                arguments("a\u0000b", "ab"),
-                arguments("\u0000", ""),
-                arguments("\u001F", ""),
-                arguments("\uFFFF", ""),
-                arguments("\u007F", "&#x7F;"),
+                arguments("\u007F", "&#x7F;", XmlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("\uD7FF", "\uD7FF"),
+                arguments("\uD7FF", "&#xD7FF;", XmlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("\uE000", "\uE000"),
+                arguments("\uE000", "&#xE000;", XmlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("\uFFFD", "\uFFFD"),
+                arguments("\uFFFD", "&#xFFFD;", XmlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("\uD83D\uDE03", "\uD83D\uDE03"),
+                arguments("\uD83D\uDE03", "&#x1F603;", XmlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\u0001\u0008\u000b\u000c\u000e\u001fb", "ab"),
+                arguments("a\u0001\u0008\u000b\u000c\u000e\u001fb", "ab", XmlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\u007e\u007f\u0084\u0085\u0086\u009f\u00a0b", "a\u007e&#x7F;\u0084\u0085\u0086\u009f\u00a0b"),
+                arguments("a\u007e\u007f\u0084\u0085\u0086\u009f\u00a0b",
+                          "a\u007e&#x7F;&#x84;&#x85;&#x86;&#x9F;&#xA0;b", XmlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\ud7ff\ud800 \udfff \ue000b", "a\ud7ff  \ue000b"),
-                arguments("a\ufffd\ufffe\uffffb", "a\ufffdb")
+                arguments("a\ud7ff\ud800 \udfff \ue000b", "a&#xD7FF;  &#xE000;b", XmlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a\ufffd\ufffe\uffffb", "a\ufffdb"),
+                arguments("a\ufffd\ufffe\uffffb", "a&#xFFFD;b", XmlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("Hello \u007F", "Hello &#127;", XmlEscaper.Option.USE_DECIMAL),
+                arguments("Hello \u1234", "Hello \u1234", XmlEscaper.Option.USE_DECIMAL),
+                arguments("Hello \u1234", "Hello &#4660;", XmlEscaper.Option.ESCAPE_NON_ASCII,
+                          XmlEscaper.Option.USE_DECIMAL)
         );
     }
 
-    @ParameterizedTest
-    @MethodSource("charSequenceProviderNonAscii")
-    public void testEscapeCharSequenceNonAscii(final String actual, final String expected) throws IOException {
-        assertThat(XmlEscaper.escape(actual, XmlEscaper.Option.ESCAPE_NON_ASCII)).isEqualTo(expected);
+    private static class OptionsAggregator extends AbstractVarargsAggregator<XmlEscaper.Option> {
+        OptionsAggregator() {
+            super(XmlEscaper.Option.class, 2);
+        }
+    }
 
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.PARAMETER)
+    @AggregateWith(OptionsAggregator.class)
+    private @interface Options {
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
+    public void testEscapeCharSequence(final String input, final String expected,
+                                       @Options final XmlEscaper.Option[] options) {
+        assertThat(XmlEscaper.escape(input, options)).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
+    public void testEscapeCharSequenceWriter(final String input, final String expected,
+                                             @Options final XmlEscaper.Option[] options) throws IOException {
         final StringWriter writer = new StringWriter();
-        XmlEscaper.escape(actual, writer, XmlEscaper.Option.ESCAPE_NON_ASCII);
+        XmlEscaper.escape(input, writer, options);
         assertThat(writer).hasToString(expected);
     }
 
     @ParameterizedTest
-    @MethodSource("charSequenceProviderAscii")
-    public void testEscapeCharSequenceAscii(final String actual, final String expected) throws IOException {
-        assertThat(XmlEscaper.escape(actual)).isEqualTo(expected);
-
-        final StringWriter writer = new StringWriter();
-        XmlEscaper.escape(actual, writer);
-        assertThat(writer).hasToString(expected);
+    @MethodSource("escapeProvider")
+    public void testEscapeCharArray(final String input, final String expected,
+                                    @Options final XmlEscaper.Option[] options) {
+        assertThat(XmlEscaper.escape(input.toCharArray(), options)).isEqualTo(expected);
     }
 
     @ParameterizedTest
-    @MethodSource("charSequenceProviderNonAscii")
-    public void testEscapeCharArrayNonAscii(final String actual, final String expected) throws IOException {
-        assertThat(XmlEscaper.escape(actual.toCharArray(), XmlEscaper.Option.ESCAPE_NON_ASCII)).isEqualTo(expected);
-
+    @MethodSource("escapeProvider")
+    public void testEscapeCharArrayWriter(final String input, final String expected,
+                                          @Options final XmlEscaper.Option[] options) throws IOException {
         final StringWriter writer = new StringWriter();
-        XmlEscaper.escape(actual.toCharArray(), writer, XmlEscaper.Option.ESCAPE_NON_ASCII);
+        XmlEscaper.escape(input.toCharArray(), writer, options);
         assertThat(writer).hasToString(expected);
-    }
-
-    @ParameterizedTest
-    @MethodSource("charSequenceProviderAscii")
-    public void testEscapeCharArrayAscii(final String actual, final String expected) throws IOException {
-        assertThat(XmlEscaper.escape(actual.toCharArray())).isEqualTo(expected);
-
-        final StringWriter writer = new StringWriter();
-        XmlEscaper.escape(actual.toCharArray(), writer);
-        assertThat(writer).hasToString(expected);
-    }
-
-    @Test
-    public void testDecimalEscapes() {
-        assertThat(XmlEscaper.escape("Hello \u1234", XmlEscaper.Option.ESCAPE_NON_ASCII)).isEqualTo("Hello &#x1234;");
-        assertThat(XmlEscaper.escape("Hello \u1234",
-                                     XmlEscaper.Option.ESCAPE_NON_ASCII, XmlEscaper.Option.USE_DECIMAL))
-                .isEqualTo("Hello &#4660;");
     }
 
     @Test

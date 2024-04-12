@@ -33,7 +33,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 @SuppressWarnings("DataFlowIssue")
 public class CsvEscaperTest {
 
-    public static Stream<Arguments> charSequenceProvider() {
+    public static Stream<Arguments> escapeProvider() {
         return Stream.of(
                 arguments("", ""),
                 arguments("  ", "  "),
@@ -48,22 +48,17 @@ public class CsvEscaperTest {
     }
 
     @ParameterizedTest
-    @MethodSource("charSequenceProvider")
-    public void testEscapeCharSequence(final String actual, final String expected) throws IOException {
-        assertThat(CsvEscaper.escape(actual)).isEqualTo(expected);
+    @MethodSource("escapeProvider")
+    public void testEscape(final String input, final String expected) throws IOException {
+        assertThat(CsvEscaper.escape(input)).isEqualTo(expected);
+        assertThat(CsvEscaper.escape(input.toCharArray())).isEqualTo(expected);
 
-        final StringWriter writer = new StringWriter();
-        CsvEscaper.escape(actual, writer);
+        StringWriter writer = new StringWriter();
+        CsvEscaper.escape(input, writer);
         assertThat(writer).hasToString(expected);
-    }
 
-    @ParameterizedTest
-    @MethodSource("charSequenceProvider")
-    public void testEscapeCharArray(final String actual, final String expected) throws IOException {
-        assertThat(CsvEscaper.escape(actual.toCharArray())).isEqualTo(expected);
-
-        final StringWriter writer = new StringWriter();
-        CsvEscaper.escape(actual.toCharArray(), writer);
+        writer = new StringWriter();
+        CsvEscaper.escape(input.toCharArray(), writer);
         assertThat(writer).hasToString(expected);
     }
 

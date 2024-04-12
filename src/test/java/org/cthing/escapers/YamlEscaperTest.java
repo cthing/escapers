@@ -19,11 +19,16 @@ package org.cthing.escapers;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.stream.Stream;
 
 import org.cthing.escapers.YamlEscaper.Quoting;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.aggregator.AggregateWith;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -35,89 +40,78 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 @SuppressWarnings({ "UnnecessaryUnicodeEscape", "DataFlowIssue" })
 public class YamlEscaperTest {
 
-    public static Stream<Arguments> quotesProviderNonAscii() {
+    public static Stream<Arguments> quotesProvider() {
         return Stream.of(
-                arguments("a", Quoting.None),
-                arguments("abc", Quoting.None),
-                arguments("ab c", Quoting.None),
-                arguments("", Quoting.Single),
-                arguments(" ", Quoting.Single),
-                arguments(" abc", Quoting.Single),
-                arguments("abc ", Quoting.Single),
-                arguments("---", Quoting.Single),
-                arguments("...", Quoting.Single),
-                arguments("ab#c", Quoting.Single),
-                arguments("ab,c", Quoting.Single),
-                arguments("ab[c", Quoting.Single),
-                arguments("ab]c", Quoting.Single),
-                arguments("ab{c", Quoting.Single),
-                arguments("ab}c", Quoting.Single),
-                arguments("ab&c", Quoting.Single),
-                arguments("ab*c", Quoting.Single),
-                arguments("ab!c", Quoting.Single),
-                arguments("ab|c", Quoting.Single),
-                arguments("ab>c", Quoting.Single),
-                arguments("ab\"c", Quoting.Double),
-                arguments("ab\\c", Quoting.Double),
-                arguments("ab/c", Quoting.Single),
-                arguments("ab%c", Quoting.Single),
-                arguments("ab@c", Quoting.Single),
-                arguments("ab?c", Quoting.Single),
-                arguments("ab:c", Quoting.Single),
-                arguments("ab\n", Quoting.Double),
-                arguments("\u0123", Quoting.Double),
-                arguments("\u1F603", Quoting.Double)
-        );
-    }
-
-    public static Stream<Arguments> quotesProviderAscii() {
-        return Stream.of(
-                arguments("a", Quoting.None),
-                arguments("abc", Quoting.None),
-                arguments("ab c", Quoting.None),
-                arguments("", Quoting.Single),
-                arguments(" ", Quoting.Single),
-                arguments(" abc", Quoting.Single),
-                arguments("abc ", Quoting.Single),
-                arguments("---", Quoting.Single),
-                arguments("...", Quoting.Single),
-                arguments("ab#c", Quoting.Single),
-                arguments("ab,c", Quoting.Single),
-                arguments("ab[c", Quoting.Single),
-                arguments("ab]c", Quoting.Single),
-                arguments("ab{c", Quoting.Single),
-                arguments("ab}c", Quoting.Single),
-                arguments("ab&c", Quoting.Single),
-                arguments("ab*c", Quoting.Single),
-                arguments("ab!c", Quoting.Single),
-                arguments("ab|c", Quoting.Single),
-                arguments("ab>c", Quoting.Single),
-                arguments("ab\"c", Quoting.Double),
-                arguments("ab\\c", Quoting.Double),
-                arguments("ab/c", Quoting.Single),
-                arguments("ab%c", Quoting.Single),
-                arguments("ab@c", Quoting.Single),
-                arguments("ab?c", Quoting.Single),
-                arguments("ab:c", Quoting.Single),
-                arguments("ab\n", Quoting.Double),
-                arguments("\u0123", Quoting.None),
-                arguments("\u1F603", Quoting.None)
+                arguments("a", Quoting.None, true),
+                arguments("a", Quoting.None, false),
+                arguments("abc", Quoting.None, true),
+                arguments("abc", Quoting.None, false),
+                arguments("ab c", Quoting.None, true),
+                arguments("ab c", Quoting.None, false),
+                arguments("", Quoting.Single, true),
+                arguments("", Quoting.Single, false),
+                arguments(" ", Quoting.Single, true),
+                arguments(" ", Quoting.Single, false),
+                arguments(" abc", Quoting.Single, true),
+                arguments(" abc", Quoting.Single, false),
+                arguments("abc ", Quoting.Single, true),
+                arguments("abc ", Quoting.Single, false),
+                arguments("---", Quoting.Single, true),
+                arguments("---", Quoting.Single, false),
+                arguments("...", Quoting.Single, true),
+                arguments("...", Quoting.Single, false),
+                arguments("ab#c", Quoting.Single, true),
+                arguments("ab#c", Quoting.Single, false),
+                arguments("ab,c", Quoting.Single, true),
+                arguments("ab,c", Quoting.Single, false),
+                arguments("ab[c", Quoting.Single, true),
+                arguments("ab[c", Quoting.Single, false),
+                arguments("ab]c", Quoting.Single, true),
+                arguments("ab]c", Quoting.Single, false),
+                arguments("ab{c", Quoting.Single, true),
+                arguments("ab{c", Quoting.Single, false),
+                arguments("ab}c", Quoting.Single, true),
+                arguments("ab}c", Quoting.Single, false),
+                arguments("ab&c", Quoting.Single, true),
+                arguments("ab&c", Quoting.Single, false),
+                arguments("ab*c", Quoting.Single, true),
+                arguments("ab*c", Quoting.Single, false),
+                arguments("ab!c", Quoting.Single, true),
+                arguments("ab!c", Quoting.Single, false),
+                arguments("ab|c", Quoting.Single, true),
+                arguments("ab|c", Quoting.Single, false),
+                arguments("ab>c", Quoting.Single, true),
+                arguments("ab>c", Quoting.Single, false),
+                arguments("ab\"c", Quoting.Double, true),
+                arguments("ab\"c", Quoting.Double, false),
+                arguments("ab\\c", Quoting.Double, true),
+                arguments("ab\\c", Quoting.Double, false),
+                arguments("ab/c", Quoting.Single, true),
+                arguments("ab/c", Quoting.Single, false),
+                arguments("ab%c", Quoting.Single, true),
+                arguments("ab%c", Quoting.Single, false),
+                arguments("ab@c", Quoting.Single, true),
+                arguments("ab@c", Quoting.Single, false),
+                arguments("ab?c", Quoting.Single, true),
+                arguments("ab?c", Quoting.Single, false),
+                arguments("ab:c", Quoting.Single, true),
+                arguments("ab:c", Quoting.Single, false),
+                arguments("ab\n", Quoting.Double, true),
+                arguments("ab\n", Quoting.Double, false),
+                arguments("\u0123", Quoting.Double, true),
+                arguments("\u0123", Quoting.None, false),
+                arguments("\u1F603", Quoting.Double, true),
+                arguments("\u1F603", Quoting.None, false)
         );
     }
 
     @ParameterizedTest
-    @MethodSource("quotesProviderNonAscii")
-    public void testRequiresQuotesNonAscii(final String str, final Quoting quoting) {
-        assertThat(YamlEscaper.requiresQuotes(str, true)).isEqualTo(quoting);
+    @MethodSource("quotesProvider")
+    public void testRequiresQuotes(final String str, final Quoting quoting, final boolean escapeNonAscii) {
+        assertThat(YamlEscaper.requiresQuotes(str, escapeNonAscii)).isEqualTo(quoting);
     }
 
-    @ParameterizedTest
-    @MethodSource("quotesProviderAscii")
-    public void testRequiresQuotesAscii(final String str, final Quoting quoting) {
-        assertThat(YamlEscaper.requiresQuotes(str, false)).isEqualTo(quoting);
-    }
-
-    public static Stream<Arguments> escapeProviderNonAscii() {
+    public static Stream<Arguments> escapeProvider() {
         return Stream.of(
                 arguments("a", "a"),
                 arguments("abc", "abc"),
@@ -129,101 +123,92 @@ public class YamlEscaperTest {
                 arguments("", "''"),
                 arguments("  ", "'  '"),
                 arguments("a\u0000b", "\"a\\0b\""),
+                arguments("a\u0000b", "\"a\\0b\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\u0007b", "\"a\\ab\""),
+                arguments("a\u0007b", "\"a\\ab\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\u0008b", "\"a\\bb\""),
+                arguments("a\u0008b", "\"a\\bb\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\tb", "\"a\\tb\""),
+                arguments("a\tb", "\"a\\tb\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\nb", "\"a\\nb\""),
+                arguments("a\nb", "\"a\\nb\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\u000Bb", "\"a\\vb\""),
+                arguments("a\u000Bb", "\"a\\vb\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\rb", "\"a\\rb\""),
+                arguments("a\rb", "\"a\\rb\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\fb", "\"a\\fb\""),
+                arguments("a\fb", "\"a\\fb\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\"b", "\"a\\\"b\""),
+                arguments("a\"b", "\"a\\\"b\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\\b", "\"a\\\\b\""),
+                arguments("a\\b", "\"a\\\\b\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a/b", "'a/b'"),
+                arguments("a/b", "'a/b'", YamlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a/b\n", "\"a\\/b\\n\""),
+                arguments("a/b\n", "\"a\\/b\\n\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\u005Cb", "\"a\\b\""),
+                arguments("a\u005Cb", "\"a\\b\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\u0085b", "\"a\\Nb\""),
+                arguments("a\u0085b", "\"a\\Nb\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\u00A0b", "\"a\\_b\""),
+                arguments("a\u00A0b", "\"a\\_b\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\u2028b", "\"a\\Lb\""),
+                arguments("a\u2028b", "\"a\\Lb\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\u2029b", "\"a\\Pb\""),
+                arguments("a\u2029b", "\"a\\Pb\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\u0001", "\"a\\x01\""),
-                arguments("a\u00FF", "\"a\\xFF\""),
-                arguments("a\u2030", "\"a\\u2030\""),
-                arguments("a\uD83D\uDE03", "\"a\\U0001F603\"")
-        );
-    }
-
-    public static Stream<Arguments> escapeProviderAscii() {
-        return Stream.of(
-                arguments("a", "a"),
-                arguments("abc", "abc"),
-                arguments("ab c", "ab c"),
-                arguments(" abc", "' abc'"),
-                arguments("abc ", "'abc '"),
-                arguments("---", "'---'"),
-                arguments("...", "'...'"),
-                arguments("", "''"),
-                arguments("  ", "'  '"),
-                arguments("a\u0000b", "\"a\\0b\""),
-                arguments("a\u0007b", "\"a\\ab\""),
-                arguments("a\u0008b", "\"a\\bb\""),
-                arguments("a\tb", "\"a\\tb\""),
-                arguments("a\nb", "\"a\\nb\""),
-                arguments("a\u000Bb", "\"a\\vb\""),
-                arguments("a\rb", "\"a\\rb\""),
-                arguments("a\fb", "\"a\\fb\""),
-                arguments("a\"b", "\"a\\\"b\""),
-                arguments("a\\b", "\"a\\\\b\""),
-                arguments("a/b", "'a/b'"),
-                arguments("a/b\n", "\"a\\/b\\n\""),
-                arguments("a\u005Cb", "\"a\\b\""),
-                arguments("a\u0085b", "\"a\\Nb\""),
-                arguments("a\u00A0b", "\"a\\_b\""),
-                arguments("a\u2028b", "\"a\\Lb\""),
-                arguments("a\u2029b", "\"a\\Pb\""),
-                arguments("a\u0001", "\"a\\x01\""),
+                arguments("a\u0001", "\"a\\x01\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\u00FF", "a\u00FF"),
+                arguments("a\u00FF", "\"a\\xFF\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("a\u2030", "a\u2030"),
-                arguments("a\uD83D\uDE03", "a\uD83D\uDE03")
+                arguments("a\u2030", "\"a\\u2030\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a\uD83D\uDE03", "a\uD83D\uDE03"),
+                arguments("a\uD83D\uDE03", "\"a\\U0001F603\"", YamlEscaper.Option.ESCAPE_NON_ASCII)
         );
     }
 
-    @ParameterizedTest
-    @MethodSource("escapeProviderNonAscii")
-    public void testEscapeCharSequenceNonAscii(final String actual, final String expected) throws IOException {
-        assertThat(YamlEscaper.escape(actual, YamlEscaper.Option.ESCAPE_NON_ASCII)).isEqualTo(expected);
+    private static class OptionsAggregator extends AbstractVarargsAggregator<YamlEscaper.Option> {
+        OptionsAggregator() {
+            super(YamlEscaper.Option.class, 2);
+        }
+    }
 
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.PARAMETER)
+    @AggregateWith(OptionsAggregator.class)
+    private @interface Options {
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
+    public void testEscapeCharSequence(final String input, final String expected,
+                                       @Options final YamlEscaper.Option[] options) {
+        assertThat(YamlEscaper.escape(input, options)).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
+    public void testEscapeCharSequenceWriter(final String input, final String expected,
+                                             @Options final YamlEscaper.Option[] options) throws IOException {
         final StringWriter writer = new StringWriter();
-        YamlEscaper.escape(actual, writer, YamlEscaper.Option.ESCAPE_NON_ASCII);
+        YamlEscaper.escape(input, writer, options);
         assertThat(writer).hasToString(expected);
     }
 
     @ParameterizedTest
-    @MethodSource("escapeProviderAscii")
-    public void testEscapeCharSequenceAscii(final String actual, final String expected) throws IOException {
-        assertThat(YamlEscaper.escape(actual)).isEqualTo(expected);
-
-        final StringWriter writer = new StringWriter();
-        YamlEscaper.escape(actual, writer);
-        assertThat(writer).hasToString(expected);
+    @MethodSource("escapeProvider")
+    public void testEscapeCharArray(final String input, final String expected,
+                                    @Options final YamlEscaper.Option[] options) {
+        assertThat(YamlEscaper.escape(input.toCharArray(), options)).isEqualTo(expected);
     }
 
     @ParameterizedTest
-    @MethodSource("escapeProviderNonAscii")
-    public void testEscapeCharArrayNonAscii(final String actual, final String expected) throws IOException {
-        assertThat(YamlEscaper.escape(actual.toCharArray(), YamlEscaper.Option.ESCAPE_NON_ASCII)).isEqualTo(expected);
-
+    @MethodSource("escapeProvider")
+    public void testEscapeCharArrayWriter(final String input, final String expected,
+                                          @Options final YamlEscaper.Option[] options) throws IOException {
         final StringWriter writer = new StringWriter();
-        YamlEscaper.escape(actual.toCharArray(), writer, YamlEscaper.Option.ESCAPE_NON_ASCII);
-        assertThat(writer).hasToString(expected);
-    }
-
-    @ParameterizedTest
-    @MethodSource("escapeProviderAscii")
-    public void testEscapeCharArrayAscii(final String actual, final String expected) throws IOException {
-        assertThat(YamlEscaper.escape(actual.toCharArray())).isEqualTo(expected);
-
-        final StringWriter writer = new StringWriter();
-        YamlEscaper.escape(actual.toCharArray(), writer);
+        YamlEscaper.escape(input.toCharArray(), writer, options);
         assertThat(writer).hasToString(expected);
     }
 

@@ -19,10 +19,15 @@ package org.cthing.escapers;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.aggregator.AggregateWith;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -34,88 +39,87 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 @SuppressWarnings({ "UnnecessaryUnicodeEscape", "DataFlowIssue" })
 public class JavaScriptEscaperTest {
 
-    public static Stream<Arguments> charSequenceProviderNonAscii() {
+    public static Stream<Arguments> escapeProvider() {
         return Stream.of(
                 arguments("", ""),
                 arguments("   ", "   "),
                 arguments("Hello World", "Hello World"),
                 arguments("Hello World\n", "Hello World\\n"),
+                arguments("Hello World\n", "Hello World\\n", JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("Hello World\r\n", "Hello World\\r\\n"),
+                arguments("Hello World\r\n", "Hello World\\r\\n", JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("Hello\tWorld", "Hello\\tWorld"),
+                arguments("Hello\tWorld", "Hello\\tWorld", JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("Hello World\f", "Hello World\\f"),
+                arguments("Hello World\f", "Hello World\\f", JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("Hello World\b", "Hello World\\b"),
+                arguments("Hello World\b", "Hello World\\b", JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("Hello \"World\"", "Hello \\\"World\\\""),
+                arguments("Hello \"World\"", "Hello \\\"World\\\"", JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("Hello 'World'", "Hello \\'World\\'"),
+                arguments("Hello 'World'", "Hello \\'World\\'", JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("https://www.cthing.com/foo", "https:\\/\\/www.cthing.com\\/foo"),
+                arguments("https://www.cthing.com/foo", "https:\\/\\/www.cthing.com\\/foo",
+                          JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("This \\ That", "This \\\\ That"),
-                arguments("Hello \u1E80orld", "Hello \\u1E80orld"),
-                arguments("Hello \uD834\uDD1E", "Hello \\uD834\\uDD1E"),
-                arguments("He didn't say, \"stop!\"", "He didn\\'t say, \\\"stop!\\\""),
-                arguments("\"foo\" isn't \"bar\". specials: \b\r\n\f\t\\/",
-                          "\\\"foo\\\" isn\\'t \\\"bar\\\". specials: \\b\\r\\n\\f\\t\\\\\\/")
-        );
-    }
-
-    public static Stream<Arguments> charSequenceProviderAscii() {
-        return Stream.of(
-                arguments("", ""),
-                arguments("   ", "   "),
-                arguments("Hello World", "Hello World"),
-                arguments("Hello World\n", "Hello World\\n"),
-                arguments("Hello World\r\n", "Hello World\\r\\n"),
-                arguments("Hello\tWorld", "Hello\\tWorld"),
-                arguments("Hello World\f", "Hello World\\f"),
-                arguments("Hello World\b", "Hello World\\b"),
-                arguments("Hello \"World\"", "Hello \\\"World\\\""),
-                arguments("Hello 'World'", "Hello \\'World\\'"),
-                arguments("https://www.cthing.com/foo", "https:\\/\\/www.cthing.com\\/foo"),
-                arguments("This \\ That", "This \\\\ That"),
+                arguments("This \\ That", "This \\\\ That", JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("Hello \u1E80orld", "Hello \u1E80orld"),
+                arguments("Hello \u1E80orld", "Hello \\u1E80orld", JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("Hello \uD834\uDD1E", "Hello \uD834\uDD1E"),
+                arguments("Hello \uD834\uDD1E", "Hello \\uD834\\uDD1E", JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("He didn't say, \"stop!\"", "He didn\\'t say, \\\"stop!\\\""),
+                arguments("He didn't say, \"stop!\"", "He didn\\'t say, \\\"stop!\\\"",
+                          JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
                 arguments("\"foo\" isn't \"bar\". specials: \b\r\n\f\t\\/",
-                          "\\\"foo\\\" isn\\'t \\\"bar\\\". specials: \\b\\r\\n\\f\\t\\\\\\/")
+                          "\\\"foo\\\" isn\\'t \\\"bar\\\". specials: \\b\\r\\n\\f\\t\\\\\\/"),
+                arguments("\"foo\" isn't \"bar\". specials: \b\r\n\f\t\\/",
+                          "\\\"foo\\\" isn\\'t \\\"bar\\\". specials: \\b\\r\\n\\f\\t\\\\\\/",
+                          JavaScriptEscaper.Option.ESCAPE_NON_ASCII)
         );
     }
 
-    @ParameterizedTest
-    @MethodSource("charSequenceProviderNonAscii")
-    public void testEscapeCharSequenceNonAscii(final String actual, final String expected) throws IOException {
-        assertThat(JavaScriptEscaper.escape(actual, JavaScriptEscaper.Option.ESCAPE_NON_ASCII)).isEqualTo(expected);
+    private static class OptionsAggregator extends AbstractVarargsAggregator<JavaScriptEscaper.Option> {
+        OptionsAggregator() {
+            super(JavaScriptEscaper.Option.class, 2);
+        }
+    }
 
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.PARAMETER)
+    @AggregateWith(OptionsAggregator.class)
+    private @interface Options {
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
+    public void testEscapeCharSequence(final String input, final String expected,
+                                       @Options final JavaScriptEscaper.Option[] options) {
+        assertThat(JavaScriptEscaper.escape(input, options)).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
+    public void testEscapeCharSequenceWriter(final String input, final String expected,
+                                             @Options final JavaScriptEscaper.Option[] options) throws IOException {
         final StringWriter writer = new StringWriter();
-        JavaScriptEscaper.escape(actual, writer, JavaScriptEscaper.Option.ESCAPE_NON_ASCII);
+        JavaScriptEscaper.escape(input, writer, options);
         assertThat(writer).hasToString(expected);
     }
 
     @ParameterizedTest
-    @MethodSource("charSequenceProviderAscii")
-    public void testEscapeCharSequenceAscii(final String actual, final String expected) throws IOException {
-        assertThat(JavaScriptEscaper.escape(actual)).isEqualTo(expected);
-
-        final StringWriter writer = new StringWriter();
-        JavaScriptEscaper.escape(actual, writer);
-        assertThat(writer).hasToString(expected);
+    @MethodSource("escapeProvider")
+    public void testEscapeCharArray(final String input, final String expected,
+                                    @Options final JavaScriptEscaper.Option[] options) {
+        assertThat(JavaScriptEscaper.escape(input.toCharArray(), options)).isEqualTo(expected);
     }
 
     @ParameterizedTest
-    @MethodSource("charSequenceProviderNonAscii")
-    public void testEscapeCharArrayNonAscii(final String actual, final String expected) throws IOException {
-        assertThat(JavaScriptEscaper.escape(actual.toCharArray(),
-                                            JavaScriptEscaper.Option.ESCAPE_NON_ASCII)).isEqualTo(expected);
-
+    @MethodSource("escapeProvider")
+    public void testEscapeCharArrayWriter(final String input, final String expected,
+                                          @Options final JavaScriptEscaper.Option[] options) throws IOException {
         final StringWriter writer = new StringWriter();
-        JavaScriptEscaper.escape(actual.toCharArray(), writer, JavaScriptEscaper.Option.ESCAPE_NON_ASCII);
-        assertThat(writer).hasToString(expected);
-    }
-
-    @ParameterizedTest
-    @MethodSource("charSequenceProviderAscii")
-    public void testEscapeCharArrayAscii(final String actual, final String expected) throws IOException {
-        assertThat(JavaScriptEscaper.escape(actual.toCharArray())).isEqualTo(expected);
-
-        final StringWriter writer = new StringWriter();
-        JavaScriptEscaper.escape(actual.toCharArray(), writer);
+        JavaScriptEscaper.escape(input.toCharArray(), writer, options);
         assertThat(writer).hasToString(expected);
     }
 
