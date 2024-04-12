@@ -162,7 +162,7 @@ public final class XmlEscaper {
 
         /**
          * Use decimal for numerical character entities (i.e. &amp;#DDDD;). By default, this library uses hexidecimal
-         * (i.e. &#xHHH;) for numerical character entities.
+         * (i.e. &amp;#xHHH;) for numerical character entities.
          */
         USE_DECIMAL,
 
