@@ -1,6 +1,6 @@
 # ![C Thing Software](https://www.cthing.com/branding/CThingSoftware-57x60.png "C Thing Software") escapers
 
-A Java library for escaping strings for use in various languages (e.g. XML).
+A Java library that escapes strings for CSV, HTML, Java, JavaScript, JSON, XML and YAML.
 
 ## Usage
 The library is available from [Maven Central](https://repo.maven.apache.org/maven2/org/cthing/escapers/) using the
@@ -16,6 +16,31 @@ or the following Gradle dependency:
 ```kotlin
 implementation("org.cthing:escapers:1.0.0")
 ```
+
+Escaping for each supported language follows the pattern:
+1. Select an escaper based on the language you are targeting. For example, to escape a string for use in an
+   HTML file, select the `HtmlEscaper`.
+2. All escapers offer static methods to escape a string or character array and will either return the
+   escaped string or write it to the specified `Writer`. For example, to escape a string for use in an HTML file:
+   ```java
+   final String escaped = HtmlEscaper.escape("This & that"); 
+   ```
+   which produces the string "This &amp;amp; that".
+3. Certain escapers offer options to control the escaping behavior. For example, the HTML escaper offers
+   options to control what character ranges are escaped, the named entity sets used, and whether numerical
+   character entities are presented in hexadecimal or decimal. For example, the following escapes a string
+   for HTML using entities for all non-ASCII characters, named character entities for all ISO Latin-1 characters,
+   and decimal for numerical character entities:
+   ```java
+   final String escaped = HtmlEscaper.escape("This & that",
+                                             HtmlEscaper.Option.ESCAPE_NON_ASCII,
+                                             HtmlEscaper.Option.USE_ISO_LATIN_1_ENTITIES,
+                                             HtmlEscaper.Option.USE_DECIMAL); 
+   ```
+   
+The Javadoc for each escaper provides detailed information about the character replacements performed and the
+options supported.
+
 ## Building
 The library is compiled for Java 17. If a Java 17 toolchain is not available, one will be downloaded.
 

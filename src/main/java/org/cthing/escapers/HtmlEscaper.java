@@ -162,7 +162,7 @@ public final class HtmlEscaper {
     public enum Option {
 
         /**
-         * Use decimal for numerical character entities (i.e. &amp;#DDDD;). By default, this library uses hexidecimal
+         * Use decimal for numerical character entities (i.e. &amp;#DDDD;). By default, this library uses hexadecimal
          * (i.e. &amp;#xHHH;) for numerical character entities.
          */
         USE_DECIMAL,

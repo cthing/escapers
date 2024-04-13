@@ -22,7 +22,7 @@ import java.util.Locale;
 
 
 /**
- * Utilities for creating hexidecimal strings.
+ * Utilities for creating hexadecimal strings.
  */
 final class HexUtils {
 
@@ -34,12 +34,12 @@ final class HexUtils {
     }
 
     /**
-     * Writes the specified value to the specified writer as a string of two uppercase hexidecimal digits. Values
+     * Writes the specified value to the specified writer as a string of two uppercase hexadecimal digits. Values
      * less that 0x10 are padded with a leading zero.
      *
-     * @param value Value between 0 and 255 inclusive to write as a two digit hexidecimal string. Values greater
+     * @param value Value between 0 and 255 inclusive to write as a two digit hexadecimal string. Values greater
      *      than 255 are truncated.
-     * @param writer Writer to which the hexidecimal string is written
+     * @param writer Writer to which the hexadecimal string is written
      * @throws IOException if there is a problem writing the string
      */
     static void writeHex2(final int value, final Writer writer) throws IOException {
@@ -48,12 +48,12 @@ final class HexUtils {
     }
 
     /**
-     * Writes the specified value to the specified writer as a string of four uppercase hexidecimal digits. Values
+     * Writes the specified value to the specified writer as a string of four uppercase hexadecimal digits. Values
      * less that 0x1000 are padded with a leading zeros.
      *
-     * @param value Value between 0 and 65535 inclusive to write as a four digit hexidecimal string. Values greater
+     * @param value Value between 0 and 65535 inclusive to write as a four digit hexadecimal string. Values greater
      *      than 65535 are truncated.
-     * @param writer Writer to which the hexidecimal string is written
+     * @param writer Writer to which the hexadecimal string is written
      * @throws IOException if there is a problem writing the string
      */
     static void writeHex4(final int value, final Writer writer) throws IOException {
@@ -64,11 +64,11 @@ final class HexUtils {
     }
 
     /**
-     * Writes the specified value to the specified writer as a string of eight uppercase hexidecimal digits. Values
+     * Writes the specified value to the specified writer as a string of eight uppercase hexadecimal digits. Values
      * less that 0x10000000 are padded with a leading zeros.
      *
-     * @param value Value between 0 and 2147483647 inclusive to write as an eight digit hexidecimal string.
-     * @param writer Writer to which the hexidecimal string is written
+     * @param value Value between 0 and 2147483647 inclusive to write as an eight digit hexadecimal string.
+     * @param writer Writer to which the hexadecimal string is written
      * @throws IOException if there is a problem writing the string
      */
     static void writeHex8(final int value, final Writer writer) throws IOException {
@@ -83,11 +83,11 @@ final class HexUtils {
     }
 
     /**
-     * Writes the specified value to the specified writer as a variable length string of uppercase hexidecimal digits.
+     * Writes the specified value to the specified writer as a variable length string of uppercase hexadecimal digits.
      * No zero padding is applied.
      *
-     * @param value Value to write as a hexidecimal string
-     * @param writer Writer to which the hexidecimal string is written
+     * @param value Value to write as a hexadecimal string
+     * @param writer Writer to which the hexadecimal string is written
      * @throws IOException if there is a problem writing the string
      */
     static void writeHex(final int value, final Writer writer) throws IOException {
