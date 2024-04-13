@@ -21,6 +21,7 @@ import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.EnumSet;
+import java.util.Set;
 import java.util.function.Function;
 
 import javax.annotation.WillNotClose;
@@ -219,6 +220,17 @@ public final class HtmlEscaper {
      * @return Escaped string or {@code null} if {@code null} was passed in.
      */
     public static String escape(final CharSequence charSequence, final Option... options) {
+        return escape(charSequence, toSet(options));
+    }
+
+    /**
+     * Applies HTML escaping to the specified string.
+     *
+     * @param charSequence String to escape
+     * @param options Escaping options
+     * @return Escaped string or {@code null} if {@code null} was passed in.
+     */
+    public static String escape(final CharSequence charSequence, final Set<Option> options) {
         if (charSequence == null) {
             return null;
         }
@@ -244,6 +256,21 @@ public final class HtmlEscaper {
     @WillNotClose
     public static void escape(final CharSequence charSequence, final Writer writer, final Option... options)
             throws IOException {
+        escape(charSequence, writer, toSet(options));
+    }
+
+    /**
+     * Applies HTML escaping to the specified string and writes the result to the specified writer.
+     *
+     * @param charSequence String to escape
+     * @param writer Writer to which the escaped string is written
+     * @param options Escaping options
+     * @throws IOException if there was a problem writing the escaped string
+     * @throws IllegalArgumentException if the writer is {@code null}
+     */
+    @WillNotClose
+    public static void escape(final CharSequence charSequence, final Writer writer, final Set<Option> options)
+            throws IOException {
         if (writer == null) {
             throw new IllegalArgumentException("writer must not be null");
         }
@@ -262,6 +289,17 @@ public final class HtmlEscaper {
      * @return Escaped string or {@code null} if {@code null} was passed in.
      */
     public static String escape(final char[] charArr, final Option... options) {
+        return escape(charArr, toSet(options));
+    }
+
+    /**
+     * Applies HTML escaping to the specified character array.
+     *
+     * @param charArr Character array to escape
+     * @param options Escaping options
+     * @return Escaped string or {@code null} if {@code null} was passed in.
+     */
+    public static String escape(final char[] charArr, final Set<Option> options) {
         if (charArr == null) {
             return null;
         }
@@ -286,6 +324,20 @@ public final class HtmlEscaper {
      */
     @WillNotClose
     public static void escape(final char[] charArr, final Writer writer, final Option... options) throws IOException {
+        escape(charArr, writer, toSet(options));
+    }
+
+    /**
+     * Applies HTML escaping to the specified character array and writes the result to the specified writer.
+     *
+     * @param charArr Character array to escape
+     * @param writer Writer to which the escaped string is written
+     * @param options Escaping options
+     * @throws IOException if there was a problem writing the escaped string
+     * @throws IllegalArgumentException if the writer is {@code null}
+     */
+    @WillNotClose
+    public static void escape(final char[] charArr, final Writer writer, final Set<Option> options) throws IOException {
         if (writer == null) {
             throw new IllegalArgumentException("writer must not be null");
         }
@@ -298,14 +350,12 @@ public final class HtmlEscaper {
 
     @SuppressWarnings("ForLoopReplaceableByForEach")
     private static void escape(final CodePointProvider codePointProvider, final int length,
-                               final Writer writer, final Option... options) throws IOException {
-        final EnumSet<Option> opts = options.length > 0 ? EnumSet.of(options[0], options) : EnumSet.noneOf(
-                Option.class);
-        final CharEscaper charEscaper = opts.contains(Option.USE_DECIMAL)
+                               final Writer writer, final Set<Option> options) throws IOException {
+        final CharEscaper charEscaper = options.contains(Option.USE_DECIMAL)
                                         ? HtmlEscaper::escapeDecimal : HtmlEscaper::escapeHex;
-        final boolean escapeNonAscii = opts.contains(Option.ESCAPE_NON_ASCII);
-        final boolean useLatin1 = opts.contains(Option.USE_ISO_LATIN_1_ENTITIES);
-        final boolean useExtended = opts.contains(Option.USE_HTML4_EXTENDED_ENTITIES);
+        final boolean escapeNonAscii = options.contains(Option.ESCAPE_NON_ASCII);
+        final boolean useLatin1 = options.contains(Option.USE_ISO_LATIN_1_ENTITIES);
+        final boolean useExtended = options.contains(Option.USE_HTML4_EXTENDED_ENTITIES);
 
         final Function<Integer, String> findEntity;
         if (!useLatin1 && !useExtended) {
@@ -373,5 +423,9 @@ public final class HtmlEscaper {
         writer.write("&#");
         writer.write(String.valueOf(cp));
         writer.write(';');
+    }
+
+    private static Set<Option> toSet(final Option... options) {
+        return options.length > 0 ? EnumSet.of(options[0], options) : EnumSet.noneOf(Option.class);
     }
 }
