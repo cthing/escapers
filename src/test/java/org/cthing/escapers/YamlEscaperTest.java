@@ -23,6 +23,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.cthing.escapers.YamlEscaper.Quoting;
@@ -34,6 +35,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.cthing.escapers.YamlEscaper.Option;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 
@@ -123,53 +125,53 @@ public class YamlEscaperTest {
                 arguments("", "''"),
                 arguments("  ", "'  '"),
                 arguments("a\u0000b", "\"a\\0b\""),
-                arguments("a\u0000b", "\"a\\0b\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a\u0000b", "\"a\\0b\"", Option.ESCAPE_NON_ASCII),
                 arguments("a\u0007b", "\"a\\ab\""),
-                arguments("a\u0007b", "\"a\\ab\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a\u0007b", "\"a\\ab\"", Option.ESCAPE_NON_ASCII),
                 arguments("a\u0008b", "\"a\\bb\""),
-                arguments("a\u0008b", "\"a\\bb\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a\u0008b", "\"a\\bb\"", Option.ESCAPE_NON_ASCII),
                 arguments("a\tb", "\"a\\tb\""),
-                arguments("a\tb", "\"a\\tb\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a\tb", "\"a\\tb\"", Option.ESCAPE_NON_ASCII),
                 arguments("a\nb", "\"a\\nb\""),
-                arguments("a\nb", "\"a\\nb\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a\nb", "\"a\\nb\"", Option.ESCAPE_NON_ASCII),
                 arguments("a\u000Bb", "\"a\\vb\""),
-                arguments("a\u000Bb", "\"a\\vb\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a\u000Bb", "\"a\\vb\"", Option.ESCAPE_NON_ASCII),
                 arguments("a\rb", "\"a\\rb\""),
-                arguments("a\rb", "\"a\\rb\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a\rb", "\"a\\rb\"", Option.ESCAPE_NON_ASCII),
                 arguments("a\fb", "\"a\\fb\""),
-                arguments("a\fb", "\"a\\fb\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a\fb", "\"a\\fb\"", Option.ESCAPE_NON_ASCII),
                 arguments("a\"b", "\"a\\\"b\""),
-                arguments("a\"b", "\"a\\\"b\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a\"b", "\"a\\\"b\"", Option.ESCAPE_NON_ASCII),
                 arguments("a\\b", "\"a\\\\b\""),
-                arguments("a\\b", "\"a\\\\b\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a\\b", "\"a\\\\b\"", Option.ESCAPE_NON_ASCII),
                 arguments("a/b", "'a/b'"),
-                arguments("a/b", "'a/b'", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a/b", "'a/b'", Option.ESCAPE_NON_ASCII),
                 arguments("a/b\n", "\"a\\/b\\n\""),
-                arguments("a/b\n", "\"a\\/b\\n\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a/b\n", "\"a\\/b\\n\"", Option.ESCAPE_NON_ASCII),
                 arguments("a\u005Cb", "\"a\\b\""),
-                arguments("a\u005Cb", "\"a\\b\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a\u005Cb", "\"a\\b\"", Option.ESCAPE_NON_ASCII),
                 arguments("a\u0085b", "\"a\\Nb\""),
-                arguments("a\u0085b", "\"a\\Nb\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a\u0085b", "\"a\\Nb\"", Option.ESCAPE_NON_ASCII),
                 arguments("a\u00A0b", "\"a\\_b\""),
-                arguments("a\u00A0b", "\"a\\_b\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a\u00A0b", "\"a\\_b\"", Option.ESCAPE_NON_ASCII),
                 arguments("a\u2028b", "\"a\\Lb\""),
-                arguments("a\u2028b", "\"a\\Lb\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a\u2028b", "\"a\\Lb\"", Option.ESCAPE_NON_ASCII),
                 arguments("a\u2029b", "\"a\\Pb\""),
-                arguments("a\u2029b", "\"a\\Pb\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a\u2029b", "\"a\\Pb\"", Option.ESCAPE_NON_ASCII),
                 arguments("a\u0001", "\"a\\x01\""),
-                arguments("a\u0001", "\"a\\x01\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a\u0001", "\"a\\x01\"", Option.ESCAPE_NON_ASCII),
                 arguments("a\u00FF", "a\u00FF"),
-                arguments("a\u00FF", "\"a\\xFF\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a\u00FF", "\"a\\xFF\"", Option.ESCAPE_NON_ASCII),
                 arguments("a\u2030", "a\u2030"),
-                arguments("a\u2030", "\"a\\u2030\"", YamlEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("a\u2030", "\"a\\u2030\"", Option.ESCAPE_NON_ASCII),
                 arguments("a\uD83D\uDE03", "a\uD83D\uDE03"),
-                arguments("a\uD83D\uDE03", "\"a\\U0001F603\"", YamlEscaper.Option.ESCAPE_NON_ASCII)
+                arguments("a\uD83D\uDE03", "\"a\\U0001F603\"", Option.ESCAPE_NON_ASCII)
         );
     }
 
-    private static class OptionsAggregator extends AbstractVarargsAggregator<YamlEscaper.Option> {
+    private static class OptionsAggregator extends AbstractVarargsAggregator<Option> {
         OptionsAggregator() {
-            super(YamlEscaper.Option.class, 2);
+            super(Option.class, 2);
         }
     }
 
@@ -182,15 +184,21 @@ public class YamlEscaperTest {
 
     @ParameterizedTest
     @MethodSource("escapeProvider")
-    public void testEscapeCharSequence(final String input, final String expected,
-                                       @Options final YamlEscaper.Option[] options) {
+    public void testEscapeCharSequence(final String input, final String expected, @Options final Set<Option> options) {
         assertThat(YamlEscaper.escape(input, options)).isEqualTo(expected);
     }
 
     @ParameterizedTest
     @MethodSource("escapeProvider")
+    public void testEscapeCharSequenceVarArgs(final String input, final String expected,
+                                              @Options final Set<Option> options) {
+        assertThat(YamlEscaper.escape(input, options.toArray(new Option[0]))).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
     public void testEscapeCharSequenceWriter(final String input, final String expected,
-                                             @Options final YamlEscaper.Option[] options) throws IOException {
+                                             @Options final Set<Option> options) throws IOException {
         final StringWriter writer = new StringWriter();
         YamlEscaper.escape(input, writer, options);
         assertThat(writer).hasToString(expected);
@@ -198,17 +206,41 @@ public class YamlEscaperTest {
 
     @ParameterizedTest
     @MethodSource("escapeProvider")
-    public void testEscapeCharArray(final String input, final String expected,
-                                    @Options final YamlEscaper.Option[] options) {
+    public void testEscapeCharSequenceWriterVarArgs(final String input, final String expected,
+                                                    @Options final Set<Option> options) throws IOException {
+        final StringWriter writer = new StringWriter();
+        YamlEscaper.escape(input, writer, options.toArray(new Option[0]));
+        assertThat(writer).hasToString(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
+    public void testEscapeCharArray(final String input, final String expected, @Options final Set<Option> options) {
         assertThat(YamlEscaper.escape(input.toCharArray(), options)).isEqualTo(expected);
     }
 
     @ParameterizedTest
     @MethodSource("escapeProvider")
+    public void testEscapeCharArrayVarArgs(final String input, final String expected,
+                                           @Options final Set<Option> options) {
+        assertThat(YamlEscaper.escape(input.toCharArray(), options.toArray(new Option[0]))).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
     public void testEscapeCharArrayWriter(final String input, final String expected,
-                                          @Options final YamlEscaper.Option[] options) throws IOException {
+                                          @Options final Set<Option> options) throws IOException {
         final StringWriter writer = new StringWriter();
         YamlEscaper.escape(input.toCharArray(), writer, options);
+        assertThat(writer).hasToString(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
+    public void testEscapeCharArrayWriterVarArgs(final String input, final String expected,
+                                                 @Options final Set<Option> options) throws IOException {
+        final StringWriter writer = new StringWriter();
+        YamlEscaper.escape(input.toCharArray(), writer, options.toArray(new Option[0]));
         assertThat(writer).hasToString(expected);
     }
 

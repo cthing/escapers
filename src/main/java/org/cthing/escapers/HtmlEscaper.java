@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
-import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -155,7 +154,7 @@ import org.cthing.annotations.NoCoverageGenerated;
  * Characters not listed in the above table are not included in the output (e.g. the null character 0x00 is dropped).
  * </p>
  */
-public final class HtmlEscaper {
+public final class HtmlEscaper extends AbstractEscaper {
 
     /**
      * Escaping options.
@@ -222,7 +221,8 @@ public final class HtmlEscaper {
     public static String escape(final CharSequence charSequence, final Option... options) {
         return (charSequence == null)
                ? null
-               : escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), toSet(options));
+               : escape(index -> Character.codePointAt(charSequence, index), charSequence.length(),
+                        toEnumSet(HtmlEscaper.Option.class, options));
     }
 
     /**
@@ -250,7 +250,8 @@ public final class HtmlEscaper {
     public static void escape(final CharSequence charSequence, final Writer writer, final Option... options)
             throws IOException {
         if (charSequence != null) {
-            escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), writer, toSet(options));
+            escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), writer,
+                   toEnumSet(HtmlEscaper.Option.class, options));
         }
     }
 
@@ -280,7 +281,9 @@ public final class HtmlEscaper {
      */
     public static String escape(final char[] charArr, final Option... options) {
         return (charArr == null)
-               ? null : escape(index -> Character.codePointAt(charArr, index), charArr.length, toSet(options));
+               ? null
+               : escape(index -> Character.codePointAt(charArr, index), charArr.length,
+                        toEnumSet(HtmlEscaper.Option.class, options));
     }
 
     /**
@@ -307,7 +310,8 @@ public final class HtmlEscaper {
     @WillNotClose
     public static void escape(final char[] charArr, final Writer writer, final Option... options) throws IOException {
         if (charArr != null) {
-            escape(index -> Character.codePointAt(charArr, index), charArr.length, writer, toSet(options));
+            escape(index -> Character.codePointAt(charArr, index), charArr.length, writer,
+                   toEnumSet(HtmlEscaper.Option.class, options));
         }
     }
 
@@ -346,7 +350,7 @@ public final class HtmlEscaper {
         }
 
         final CharEscaper charEscaper = options.contains(Option.USE_DECIMAL)
-                                        ? HtmlEscaper::escapeDecimal : HtmlEscaper::escapeHex;
+                                        ? AbstractEscaper::escapeDecimalEntity : AbstractEscaper::escapeHexEntity;
         final boolean escapeNonAscii = options.contains(Option.ESCAPE_NON_ASCII);
         final boolean useLatin1 = options.contains(Option.USE_ISO_LATIN_1_ENTITIES);
         final boolean useExtended = options.contains(Option.USE_HTML4_EXTENDED_ENTITIES);
@@ -405,21 +409,5 @@ public final class HtmlEscaper {
 
             index += Character.charCount(cp);
         }
-    }
-
-    private static void escapeHex(final int cp, final Writer writer) throws IOException {
-        writer.write("&#x");
-        HexUtils.writeHex(cp, writer);
-        writer.write(';');
-    }
-
-    private static void escapeDecimal(final int cp, final Writer writer) throws IOException {
-        writer.write("&#");
-        writer.write(String.valueOf(cp));
-        writer.write(';');
-    }
-
-    private static Set<Option> toSet(final Option... options) {
-        return options.length > 0 ? EnumSet.of(options[0], options) : EnumSet.noneOf(Option.class);
     }
 }

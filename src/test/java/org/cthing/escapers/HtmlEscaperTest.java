@@ -23,6 +23,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -110,14 +111,21 @@ public class HtmlEscaperTest {
 
     @ParameterizedTest
     @MethodSource("escapeProvider")
-    public void testEscapeCharSequence(final String input, final String expected, @Options final Option[] options) {
+    public void testEscapeCharSequence(final String input, final String expected, @Options final Set<Option> options) {
         assertThat(HtmlEscaper.escape(input, options)).isEqualTo(expected);
     }
 
     @ParameterizedTest
     @MethodSource("escapeProvider")
+    public void testEscapeCharSequenceVarArgs(final String input, final String expected,
+                                              @Options final Set<Option> options) {
+        assertThat(HtmlEscaper.escape(input, options.toArray(new Option[0]))).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
     public void testEscapeCharSequenceWriter(final String input, final String expected,
-                                             @Options final Option[] options) throws IOException {
+                                             @Options final Set<Option> options) throws IOException {
         final StringWriter writer = new StringWriter();
         HtmlEscaper.escape(input, writer, options);
         assertThat(writer).hasToString(expected);
@@ -125,16 +133,41 @@ public class HtmlEscaperTest {
 
     @ParameterizedTest
     @MethodSource("escapeProvider")
-    public void testEscapeCharArray(final String input, final String expected, @Options final Option[] options) {
+    public void testEscapeCharSequenceWriterVarArgs(final String input, final String expected,
+                                                    @Options final Set<Option> options) throws IOException {
+        final StringWriter writer = new StringWriter();
+        HtmlEscaper.escape(input, writer, options.toArray(new Option[0]));
+        assertThat(writer).hasToString(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
+    public void testEscapeCharArray(final String input, final String expected, @Options final Set<Option> options) {
         assertThat(HtmlEscaper.escape(input.toCharArray(), options)).isEqualTo(expected);
     }
 
     @ParameterizedTest
     @MethodSource("escapeProvider")
+    public void testEscapeCharArrayVarArgs(final String input, final String expected,
+                                           @Options final Set<Option> options) {
+        assertThat(HtmlEscaper.escape(input.toCharArray(), options.toArray(new Option[0]))).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
     public void testEscapeCharArrayWriter(final String input, final String expected,
-                                          @Options final Option[] options) throws IOException {
+                                          @Options final Set<Option> options) throws IOException {
         final StringWriter writer = new StringWriter();
         HtmlEscaper.escape(input.toCharArray(), writer, options);
+        assertThat(writer).hasToString(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
+    public void testEscapeCharArrayWriterVarArgs(final String input, final String expected,
+                                                 @Options final Set<Option> options) throws IOException {
+        final StringWriter writer = new StringWriter();
+        HtmlEscaper.escape(input.toCharArray(), writer, options.toArray(new Option[0]));
         assertThat(writer).hasToString(expected);
     }
 

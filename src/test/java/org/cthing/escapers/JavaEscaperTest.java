@@ -23,6 +23,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.cthing.escapers.JavaEscaper.Option;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 
@@ -43,66 +45,62 @@ public class JavaEscaperTest {
         return Stream.of(
                 arguments("", ""),
                 arguments("   ", "   "),
-                arguments(" ", "\\s", JavaEscaper.Option.ESCAPE_SPACE),
+                arguments(" ", "\\s", Option.ESCAPE_SPACE),
                 arguments("Hello World", "Hello World"),
-                arguments("Hello World", "Hello\\sWorld", JavaEscaper.Option.ESCAPE_SPACE),
+                arguments("Hello World", "Hello\\sWorld", Option.ESCAPE_SPACE),
                 arguments("Hello don't World", "Hello don't World"),
-                arguments("  Hello World  ", "\\s\\sHello\\sWorld\\s\\s", JavaEscaper.Option.ESCAPE_SPACE),
+                arguments("  Hello World  ", "\\s\\sHello\\sWorld\\s\\s", Option.ESCAPE_SPACE),
                 arguments("Hello World\n", "Hello World\\n"),
-                arguments("Hello World\n", "Hello World\\n", JavaEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("Hello World\n", "Hello World\\n", Option.ESCAPE_NON_ASCII),
                 arguments("Hello World\r\n", "Hello World\\r\\n"),
-                arguments("Hello World\r\n", "Hello World\\r\\n", JavaEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("Hello World\r\n", "Hello World\\r\\n", Option.ESCAPE_NON_ASCII),
                 arguments("Hello\tWorld", "Hello\\tWorld"),
-                arguments("Hello\tWorld", "Hello\\tWorld", JavaEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("Hello\tWorld", "Hello\\tWorld", Option.ESCAPE_NON_ASCII),
                 arguments("Hello World\f", "Hello World\\f"),
-                arguments("Hello World\f", "Hello World\\f", JavaEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("Hello World\f", "Hello World\\f", Option.ESCAPE_NON_ASCII),
                 arguments("Hello World\b", "Hello World\\b"),
-                arguments("Hello World\b", "Hello World\\b", JavaEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("Hello World\b", "Hello World\\b", Option.ESCAPE_NON_ASCII),
                 arguments("Hello \"World\"", "Hello \\\"World\\\""),
-                arguments("Hello \"World\"", "Hello \\\"World\\\"", JavaEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("Hello \"World\"", "Hello \\\"World\\\"", Option.ESCAPE_NON_ASCII),
                 arguments("https://www.cthing.com/foo", "https://www.cthing.com/foo"),
-                arguments("https://www.cthing.com/foo", "https://www.cthing.com/foo",
-                          JavaEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("https://www.cthing.com/foo", "https://www.cthing.com/foo", Option.ESCAPE_NON_ASCII),
                 arguments("This \\ That", "This \\\\ That"),
-                arguments("This \\ That", "This \\\\ That", JavaEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("This \\ That", "This \\\\ That", Option.ESCAPE_NON_ASCII),
                 arguments("Hello \u1E80orld", "Hello \u1E80orld"),
-                arguments("Hello \u1E80orld", "Hello \\u1E80orld", JavaEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("Hello \u1E80orld", "Hello \\u1E80orld", Option.ESCAPE_NON_ASCII),
                 arguments("Hello \uD834\uDD1E", "Hello \uD834\uDD1E"),
-                arguments("Hello \uD834\uDD1E", "Hello \\uD834\\uDD1E", JavaEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("Hello \uD834\uDD1E", "Hello \\uD834\\uDD1E", Option.ESCAPE_NON_ASCII),
                 arguments("He didn't say, \"stop!\"", "He didn't say, \\\"stop!\\\""),
-                arguments("He didn't say, \"stop!\"", "He didn't say, \\\"stop!\\\"",
-                          JavaEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("He didn't say, \"stop!\"", "He didn't say, \\\"stop!\\\"", Option.ESCAPE_NON_ASCII),
                 arguments("\"foo\" isn't \"bar\". specials: \b\r\n\f\t\\/",
                           "\\\"foo\\\" isn't \\\"bar\\\". specials: \\b\\r\\n\\f\\t\\\\/"),
                 arguments("\"foo\" isn't \"bar\". specials: \b\r\n\f\t\\/",
-                          "\\\"foo\\\" isn't \\\"bar\\\". specials: \\b\\r\\n\\f\\t\\\\/",
-                          JavaEscaper.Option.ESCAPE_NON_ASCII),
+                          "\\\"foo\\\" isn't \\\"bar\\\". specials: \\b\\r\\n\\f\\t\\\\/", Option.ESCAPE_NON_ASCII),
                 arguments("\\\b\t\r", "\\\\\\b\\t\\r"),
-                arguments("\\\b\t\r", "\\\\\\b\\t\\r", JavaEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("\\\b\t\r", "\\\\\\b\\t\\r", Option.ESCAPE_NON_ASCII),
                 arguments("\u1234", "\u1234"),
-                arguments("\u1234", "\\u1234", JavaEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("\u1234", "\\u1234", Option.ESCAPE_NON_ASCII),
                 arguments("\u0234", "\u0234"),
-                arguments("\u0234", "\\u0234", JavaEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("\u0234", "\\u0234", Option.ESCAPE_NON_ASCII),
                 arguments("\u00ef", "\u00EF"),
-                arguments("\u00ef", "\\u00EF", JavaEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("\u00ef", "\\u00EF", Option.ESCAPE_NON_ASCII),
                 arguments("\u0001", "\\u0001"),
-                arguments("\u0001", "\\u0001", JavaEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("\u0001", "\\u0001", Option.ESCAPE_NON_ASCII),
                 arguments("\uabcd", "\uABCD"),
-                arguments("\uabcd", "\\uABCD", JavaEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("\uabcd", "\\uABCD", Option.ESCAPE_NON_ASCII),
                 arguments("He didn't say, \"stop!\"", "He didn't say, \\\"stop!\\\""),
-                arguments("He didn't say, \"stop!\"", "He didn't say, \\\"stop!\\\"",
-                          JavaEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("He didn't say, \"stop!\"", "He didn't say, \\\"stop!\\\"", Option.ESCAPE_NON_ASCII),
                 arguments("This space is non-breaking:\u00a0", "This space is non-breaking:" + "\u00A0"),
                 arguments("This space is non-breaking:\u00a0", "This space is non-breaking:" + "\\u00A0",
-                          JavaEscaper.Option.ESCAPE_NON_ASCII),
+                          Option.ESCAPE_NON_ASCII),
                 arguments("\uABCD\u1234\u012C", "\uABCD\u1234\u012C"),
-                arguments("\uABCD\u1234\u012C", "\\uABCD\\u1234\\u012C", JavaEscaper.Option.ESCAPE_NON_ASCII)
+                arguments("\uABCD\u1234\u012C", "\\uABCD\\u1234\\u012C", Option.ESCAPE_NON_ASCII)
         );
     }
 
-    private static class OptionsAggregator extends AbstractVarargsAggregator<JavaEscaper.Option> {
+    private static class OptionsAggregator extends AbstractVarargsAggregator<Option> {
         OptionsAggregator() {
-            super(JavaEscaper.Option.class, 2);
+            super(Option.class, 2);
         }
     }
 
@@ -116,14 +114,21 @@ public class JavaEscaperTest {
     @ParameterizedTest
     @MethodSource("escapeProvider")
     public void testEscapeCharSequence(final String input, final String expected,
-                                       @Options final JavaEscaper.Option[] options) {
+                                       @Options final Set<Option> options) {
         assertThat(JavaEscaper.escape(input, options)).isEqualTo(expected);
     }
 
     @ParameterizedTest
     @MethodSource("escapeProvider")
+    public void testEscapeCharSequenceVarArgs(final String input, final String expected,
+                                              @Options final Set<Option> options) {
+        assertThat(JavaEscaper.escape(input, options.toArray(new Option[0]))).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
     public void testEscapeCharSequenceWriter(final String input, final String expected,
-                                             @Options final JavaEscaper.Option[] options) throws IOException {
+                                             @Options final Set<Option> options) throws IOException {
         final StringWriter writer = new StringWriter();
         JavaEscaper.escape(input, writer, options);
         assertThat(writer).hasToString(expected);
@@ -131,17 +136,43 @@ public class JavaEscaperTest {
 
     @ParameterizedTest
     @MethodSource("escapeProvider")
+    public void testEscapeCharSequenceWriterVarArgs(final String input, final String expected,
+                                                    @Options final Set<Option> options) throws IOException {
+        final StringWriter writer = new StringWriter();
+        JavaEscaper.escape(input, writer, options.toArray(new Option[0]));
+        assertThat(writer).hasToString(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
     public void testEscapeCharArray(final String input, final String expected,
-                                    @Options final JavaEscaper.Option[] options) {
+                                    @Options final Set<Option> options) {
         assertThat(JavaEscaper.escape(input.toCharArray(), options)).isEqualTo(expected);
     }
 
     @ParameterizedTest
     @MethodSource("escapeProvider")
+    public void testEscapeCharArrayVarArgs(final String input, final String expected,
+                                           @Options final Set<Option> options) {
+        assertThat(JavaEscaper.escape(input.toCharArray(),
+                                      options.toArray(new Option[0]))).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
     public void testEscapeCharArrayWriter(final String input, final String expected,
-                                          @Options final JavaEscaper.Option[] options) throws IOException {
+                                          @Options final Set<Option> options) throws IOException {
         final StringWriter writer = new StringWriter();
         JavaEscaper.escape(input.toCharArray(), writer, options);
+        assertThat(writer).hasToString(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
+    public void testEscapeCharArrayWriterVarArgs(final String input, final String expected,
+                                                 @Options final Set<Option> options) throws IOException {
+        final StringWriter writer = new StringWriter();
+        JavaEscaper.escape(input.toCharArray(), writer, options.toArray(new Option[0]));
         assertThat(writer).hasToString(expected);
     }
 

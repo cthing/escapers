@@ -23,6 +23,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.cthing.escapers.JavaScriptEscaper.Option;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 
@@ -45,42 +47,39 @@ public class JavaScriptEscaperTest {
                 arguments("   ", "   "),
                 arguments("Hello World", "Hello World"),
                 arguments("Hello World\n", "Hello World\\n"),
-                arguments("Hello World\n", "Hello World\\n", JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("Hello World\n", "Hello World\\n", Option.ESCAPE_NON_ASCII),
                 arguments("Hello World\r\n", "Hello World\\r\\n"),
-                arguments("Hello World\r\n", "Hello World\\r\\n", JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("Hello World\r\n", "Hello World\\r\\n", Option.ESCAPE_NON_ASCII),
                 arguments("Hello\tWorld", "Hello\\tWorld"),
-                arguments("Hello\tWorld", "Hello\\tWorld", JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("Hello\tWorld", "Hello\\tWorld", Option.ESCAPE_NON_ASCII),
                 arguments("Hello World\f", "Hello World\\f"),
-                arguments("Hello World\f", "Hello World\\f", JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("Hello World\f", "Hello World\\f", Option.ESCAPE_NON_ASCII),
                 arguments("Hello World\b", "Hello World\\b"),
-                arguments("Hello World\b", "Hello World\\b", JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("Hello World\b", "Hello World\\b", Option.ESCAPE_NON_ASCII),
                 arguments("Hello \"World\"", "Hello \\\"World\\\""),
-                arguments("Hello \"World\"", "Hello \\\"World\\\"", JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("Hello \"World\"", "Hello \\\"World\\\"", Option.ESCAPE_NON_ASCII),
                 arguments("Hello 'World'", "Hello \\'World\\'"),
-                arguments("Hello 'World'", "Hello \\'World\\'", JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("Hello 'World'", "Hello \\'World\\'", Option.ESCAPE_NON_ASCII),
                 arguments("https://www.cthing.com/foo", "https:\\/\\/www.cthing.com\\/foo"),
-                arguments("https://www.cthing.com/foo", "https:\\/\\/www.cthing.com\\/foo",
-                          JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("https://www.cthing.com/foo", "https:\\/\\/www.cthing.com\\/foo", Option.ESCAPE_NON_ASCII),
                 arguments("This \\ That", "This \\\\ That"),
-                arguments("This \\ That", "This \\\\ That", JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("This \\ That", "This \\\\ That", Option.ESCAPE_NON_ASCII),
                 arguments("Hello \u1E80orld", "Hello \u1E80orld"),
-                arguments("Hello \u1E80orld", "Hello \\u1E80orld", JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("Hello \u1E80orld", "Hello \\u1E80orld", Option.ESCAPE_NON_ASCII),
                 arguments("Hello \uD834\uDD1E", "Hello \uD834\uDD1E"),
-                arguments("Hello \uD834\uDD1E", "Hello \\uD834\\uDD1E", JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("Hello \uD834\uDD1E", "Hello \\uD834\\uDD1E", Option.ESCAPE_NON_ASCII),
                 arguments("He didn't say, \"stop!\"", "He didn\\'t say, \\\"stop!\\\""),
-                arguments("He didn't say, \"stop!\"", "He didn\\'t say, \\\"stop!\\\"",
-                          JavaScriptEscaper.Option.ESCAPE_NON_ASCII),
+                arguments("He didn't say, \"stop!\"", "He didn\\'t say, \\\"stop!\\\"", Option.ESCAPE_NON_ASCII),
                 arguments("\"foo\" isn't \"bar\". specials: \b\r\n\f\t\\/",
                           "\\\"foo\\\" isn\\'t \\\"bar\\\". specials: \\b\\r\\n\\f\\t\\\\\\/"),
                 arguments("\"foo\" isn't \"bar\". specials: \b\r\n\f\t\\/",
-                          "\\\"foo\\\" isn\\'t \\\"bar\\\". specials: \\b\\r\\n\\f\\t\\\\\\/",
-                          JavaScriptEscaper.Option.ESCAPE_NON_ASCII)
+                          "\\\"foo\\\" isn\\'t \\\"bar\\\". specials: \\b\\r\\n\\f\\t\\\\\\/", Option.ESCAPE_NON_ASCII)
         );
     }
 
-    private static class OptionsAggregator extends AbstractVarargsAggregator<JavaScriptEscaper.Option> {
+    private static class OptionsAggregator extends AbstractVarargsAggregator<Option> {
         OptionsAggregator() {
-            super(JavaScriptEscaper.Option.class, 2);
+            super(Option.class, 2);
         }
     }
 
@@ -94,14 +93,22 @@ public class JavaScriptEscaperTest {
     @ParameterizedTest
     @MethodSource("escapeProvider")
     public void testEscapeCharSequence(final String input, final String expected,
-                                       @Options final JavaScriptEscaper.Option[] options) {
+                                       @Options final Set<Option> options) {
         assertThat(JavaScriptEscaper.escape(input, options)).isEqualTo(expected);
     }
 
     @ParameterizedTest
     @MethodSource("escapeProvider")
+    public void testEscapeCharSequenceVarArgs(final String input, final String expected,
+                                              @Options final Set<Option> options) {
+        assertThat(JavaScriptEscaper.escape(input,
+                                            options.toArray(new Option[0]))).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
     public void testEscapeCharSequenceWriter(final String input, final String expected,
-                                             @Options final JavaScriptEscaper.Option[] options) throws IOException {
+                                             @Options final Set<Option> options) throws IOException {
         final StringWriter writer = new StringWriter();
         JavaScriptEscaper.escape(input, writer, options);
         assertThat(writer).hasToString(expected);
@@ -109,17 +116,45 @@ public class JavaScriptEscaperTest {
 
     @ParameterizedTest
     @MethodSource("escapeProvider")
+    public void testEscapeCharSequenceWriterVarArgs(final String input, final String expected,
+                                                    @Options final Set<Option> options)
+            throws IOException {
+        final StringWriter writer = new StringWriter();
+        JavaScriptEscaper.escape(input, writer, options.toArray(new Option[0]));
+        assertThat(writer).hasToString(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
     public void testEscapeCharArray(final String input, final String expected,
-                                    @Options final JavaScriptEscaper.Option[] options) {
+                                    @Options final Set<Option> options) {
         assertThat(JavaScriptEscaper.escape(input.toCharArray(), options)).isEqualTo(expected);
     }
 
     @ParameterizedTest
     @MethodSource("escapeProvider")
+    public void testEscapeCharArrayVarArgs(final String input, final String expected,
+                                           @Options final Set<Option> options) {
+        assertThat(JavaScriptEscaper.escape(input.toCharArray(),
+                                            options.toArray(new Option[0]))).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
     public void testEscapeCharArrayWriter(final String input, final String expected,
-                                          @Options final JavaScriptEscaper.Option[] options) throws IOException {
+                                          @Options final Set<Option> options) throws IOException {
         final StringWriter writer = new StringWriter();
         JavaScriptEscaper.escape(input.toCharArray(), writer, options);
+        assertThat(writer).hasToString(expected);
+    }
+
+    @ParameterizedTest
+    @MethodSource("escapeProvider")
+    public void testEscapeCharArrayWriterVarArgs(final String input, final String expected,
+                                                 @Options final Set<Option> options)
+            throws IOException {
+        final StringWriter writer = new StringWriter();
+        JavaScriptEscaper.escape(input.toCharArray(), writer, options.toArray(new Option[0]));
         assertThat(writer).hasToString(expected);
     }
 

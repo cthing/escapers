@@ -16,7 +16,8 @@
 
 package org.cthing.escapers;
 
-import java.lang.reflect.Array;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.extension.ParameterContext;
@@ -36,9 +37,9 @@ public class AbstractVarargsAggregator<T> implements ArgumentsAggregator {
 
     @Override
     @SuppressWarnings("unchecked")
-    public T[] aggregateArguments(final ArgumentsAccessor arguments, final ParameterContext context) {
+    public Set<T> aggregateArguments(final ArgumentsAccessor arguments, final ParameterContext context) {
         return IntStream.range(this.startIndex, arguments.size())
                         .mapToObj(i -> arguments.get(i, this.optionsType))
-                        .toArray(length -> (T[])Array.newInstance(this.optionsType, length));
+                        .collect(Collectors.toSet());
     }
 }

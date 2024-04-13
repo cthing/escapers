@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
-import java.util.EnumSet;
 import java.util.Set;
 
 import javax.annotation.WillNotClose;
@@ -211,7 +210,7 @@ import org.cthing.annotations.NoCoverageGenerated;
  *     </tbody>
  * </table>
  */
-public final class YamlEscaper {
+public final class YamlEscaper extends AbstractEscaper {
 
     /**
      * Escaping options.
@@ -248,7 +247,8 @@ public final class YamlEscaper {
      * @return Escaped string or {@code null} if {@code null} was passed in.
      */
     public static String escape(final CharSequence charSequence, final Option... options) {
-        return (charSequence == null) ? null : escape(charSequence.toString(), toSet(options));
+        return (charSequence == null)
+               ? null : escape(charSequence.toString(), toEnumSet(YamlEscaper.Option.class, options));
     }
 
     /**
@@ -275,7 +275,7 @@ public final class YamlEscaper {
     public static void escape(final CharSequence charSequence, final Writer writer, final Option... options)
             throws IOException {
         if (charSequence != null) {
-            escape(charSequence.toString(), writer, toSet(options));
+            escape(charSequence.toString(), writer, toEnumSet(YamlEscaper.Option.class, options));
         }
     }
 
@@ -305,7 +305,7 @@ public final class YamlEscaper {
      *      not included in the output.
      */
     public static String escape(final char[] charArr, final Option... options) {
-        return (charArr == null) ? null : escape(new String(charArr), toSet(options));
+        return (charArr == null) ? null : escape(new String(charArr), toEnumSet(YamlEscaper.Option.class, options));
     }
 
     /**
@@ -332,7 +332,7 @@ public final class YamlEscaper {
     @WillNotClose
     public static void escape(final char[] charArr, final Writer writer, final Option... options) throws IOException {
         if (charArr != null) {
-            escape(new String(charArr), writer, toSet(options));
+            escape(new String(charArr), writer, toEnumSet(YamlEscaper.Option.class, options));
         }
     }
 
@@ -481,9 +481,5 @@ public final class YamlEscaper {
         }
 
         return needsSingle ? Quoting.Single : Quoting.None;
-    }
-
-    private static Set<Option> toSet(final Option... options) {
-        return options.length > 0 ? EnumSet.of(options[0], options) : EnumSet.noneOf(Option.class);
     }
 }

@@ -33,7 +33,7 @@ import org.cthing.annotations.NoCoverageGenerated;
  * any double quotes within the string must be replaced with two consecutive double quotes
  * (i.e. a single {@literal "} becomes {@literal ""}).
  */
-public final class CsvEscaper {
+public final class CsvEscaper extends AbstractEscaper {
 
     @NoCoverageGenerated
     private CsvEscaper() {

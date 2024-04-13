@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
-import java.util.EnumSet;
 import java.util.Set;
 
 import javax.annotation.WillNotClose;
@@ -141,7 +140,7 @@ import org.cthing.annotations.NoCoverageGenerated;
  *     </tbody>
  * </table>
  */
-public final class JavaScriptEscaper {
+public final class JavaScriptEscaper extends AbstractEscaper {
 
     /**
      * Escaping options.
@@ -169,7 +168,8 @@ public final class JavaScriptEscaper {
     public static String escape(final CharSequence charSequence, final Option... options) {
         return (charSequence == null)
                ? null
-               : escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), toSet(options));
+               : escape(index -> Character.codePointAt(charSequence, index), charSequence.length(),
+                        toEnumSet(JavaScriptEscaper.Option.class, options));
     }
 
     /**
@@ -197,7 +197,8 @@ public final class JavaScriptEscaper {
     public static void escape(final CharSequence charSequence, final Writer writer, final Option... options)
             throws IOException {
         if (charSequence != null) {
-            escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), writer, toSet(options));
+            escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), writer,
+                   toEnumSet(JavaScriptEscaper.Option.class, options));
         }
     }
 
@@ -227,7 +228,9 @@ public final class JavaScriptEscaper {
      */
     public static String escape(final char[] charArr, final Option... options) {
         return (charArr == null)
-               ? null : escape(index -> Character.codePointAt(charArr, index), charArr.length, toSet(options));
+               ? null
+               : escape(index -> Character.codePointAt(charArr, index), charArr.length,
+                        toEnumSet(JavaScriptEscaper.Option.class, options));
     }
 
     /**
@@ -254,7 +257,8 @@ public final class JavaScriptEscaper {
     @WillNotClose
     public static void escape(final char[] charArr, final Writer writer, final Option... options) throws IOException {
         if (charArr != null) {
-            escape(index -> Character.codePointAt(charArr, index), charArr.length, writer, toSet(options));
+            escape(index -> Character.codePointAt(charArr, index), charArr.length, writer,
+                   toEnumSet(JavaScriptEscaper.Option.class, options));
         }
     }
 
@@ -310,14 +314,14 @@ public final class JavaScriptEscaper {
                 default -> {
                     if (charCount == 1) {
                         if (cp < 0x20 || cp == 0x7F || (escapeNonAscii && cp > 0x7F)) {
-                            escape(cp, writer);
+                            escapeUnicode(cp, writer);
                         } else {
                             writer.write(cp);
                         }
                     } else {
                         if (escapeNonAscii) {
                             for (final char ch : Character.toChars(cp)) {
-                                escape(ch, writer);
+                                escapeUnicode(ch, writer);
                             }
                         } else {
                             writer.write(Character.toChars(cp));
@@ -327,14 +331,5 @@ public final class JavaScriptEscaper {
             }
             index += charCount;
         }
-    }
-
-    private static void escape(final int ch, final Writer writer) throws IOException {
-        writer.write("\\u");
-        HexUtils.writeHex4(ch, writer);
-    }
-
-    private static Set<Option> toSet(final Option... options) {
-        return options.length > 0 ? EnumSet.of(options[0], options) : EnumSet.noneOf(Option.class);
     }
 }
