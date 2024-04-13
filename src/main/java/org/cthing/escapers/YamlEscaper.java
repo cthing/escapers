@@ -248,7 +248,7 @@ public final class YamlEscaper {
      * @return Escaped string or {@code null} if {@code null} was passed in.
      */
     public static String escape(final CharSequence charSequence, final Option... options) {
-        return escape(charSequence, toSet(options));
+        return (charSequence == null) ? null : escape(charSequence.toString(), toSet(options));
     }
 
     /**
@@ -259,17 +259,7 @@ public final class YamlEscaper {
      * @return Escaped string or {@code null} if {@code null} was passed in.
      */
     public static String escape(final CharSequence charSequence, final Set<Option> options) {
-        if (charSequence == null) {
-            return null;
-        }
-
-        try {
-            final StringWriter writer = new StringWriter();
-            escape(charSequence.toString(), writer, options);
-            return writer.toString();
-        } catch (final IOException ex) {
-            throw new UncheckedIOException(ex);
-        }
+        return (charSequence == null) ? null : escape(charSequence.toString(), options);
     }
 
     /**
@@ -284,7 +274,9 @@ public final class YamlEscaper {
     @WillNotClose
     public static void escape(final CharSequence charSequence, final Writer writer, final Option... options)
             throws IOException {
-        escape(charSequence, writer, toSet(options));
+        if (charSequence != null) {
+            escape(charSequence.toString(), writer, toSet(options));
+        }
     }
 
     /**
@@ -299,14 +291,9 @@ public final class YamlEscaper {
     @WillNotClose
     public static void escape(final CharSequence charSequence, final Writer writer, final Set<Option> options)
             throws IOException {
-        if (writer == null) {
-            throw new IllegalArgumentException("writer must not be null");
+        if (charSequence != null) {
+            escape(charSequence.toString(), writer, options);
         }
-        if (charSequence == null) {
-            return;
-        }
-
-        escape(charSequence.toString(), writer, options);
     }
 
     /**
@@ -318,7 +305,7 @@ public final class YamlEscaper {
      *      not included in the output.
      */
     public static String escape(final char[] charArr, final Option... options) {
-        return escape(charArr, toSet(options));
+        return (charArr == null) ? null : escape(new String(charArr), toSet(options));
     }
 
     /**
@@ -330,17 +317,7 @@ public final class YamlEscaper {
      *      not included in the output.
      */
     public static String escape(final char[] charArr, final Set<Option> options) {
-        if (charArr == null) {
-            return null;
-        }
-
-        try {
-            final StringWriter writer = new StringWriter();
-            escape(new String(charArr), writer, options);
-            return writer.toString();
-        } catch (final IOException ex) {
-            throw new UncheckedIOException(ex);
-        }
+        return (charArr == null) ? null : escape(new String(charArr), options);
     }
 
     /**
@@ -354,7 +331,9 @@ public final class YamlEscaper {
      */
     @WillNotClose
     public static void escape(final char[] charArr, final Writer writer, final Option... options) throws IOException {
-        escape(charArr, writer, toSet(options));
+        if (charArr != null) {
+            escape(new String(charArr), writer, toSet(options));
+        }
     }
 
     /**
@@ -368,18 +347,27 @@ public final class YamlEscaper {
      */
     @WillNotClose
     public static void escape(final char[] charArr, final Writer writer, final Set<Option> options) throws IOException {
-        if (writer == null) {
-            throw new IllegalArgumentException("writer must not be null");
+        if (charArr != null) {
+            escape(new String(charArr), writer, options);
         }
-        if (charArr == null) {
-            return;
-        }
+    }
 
-        escape(new String(charArr), writer, options);
+    private static String escape(final String str, final Set<Option> options) {
+        try {
+            final StringWriter writer = new StringWriter();
+            escape(str, writer, options);
+            return writer.toString();
+        } catch (final IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
     }
 
     private static void escape(final String str, final Writer writer, final Set<Option> options)
             throws IOException {
+        if (writer == null) {
+            throw new IllegalArgumentException("writer must not be null");
+        }
+
         final boolean escapeNonAscii = options.contains(Option.ESCAPE_NON_ASCII);
 
         final Quoting quoting = requiresQuotes(str, escapeNonAscii);

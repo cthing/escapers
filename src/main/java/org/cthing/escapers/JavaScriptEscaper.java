@@ -167,7 +167,9 @@ public final class JavaScriptEscaper {
      * @return Escaped string or {@code null} if {@code null} was passed in.
      */
     public static String escape(final CharSequence charSequence, final Option... options) {
-        return escape(charSequence, toSet(options));
+        return (charSequence == null)
+               ? null
+               : escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), toSet(options));
     }
 
     /**
@@ -178,17 +180,8 @@ public final class JavaScriptEscaper {
      * @return Escaped string or {@code null} if {@code null} was passed in.
      */
     public static String escape(final CharSequence charSequence, final Set<Option> options) {
-        if (charSequence == null) {
-            return null;
-        }
-
-        try {
-            final StringWriter writer = new StringWriter();
-            escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), writer, options);
-            return writer.toString();
-        } catch (final IOException ex) {
-            throw new UncheckedIOException(ex);
-        }
+        return (charSequence == null)
+               ? null : escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), options);
     }
 
     /**
@@ -203,7 +196,9 @@ public final class JavaScriptEscaper {
     @WillNotClose
     public static void escape(final CharSequence charSequence, final Writer writer, final Option... options)
             throws IOException {
-        escape(charSequence, writer, toSet(options));
+        if (charSequence != null) {
+            escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), writer, toSet(options));
+        }
     }
 
     /**
@@ -218,14 +213,9 @@ public final class JavaScriptEscaper {
     @WillNotClose
     public static void escape(final CharSequence charSequence, final Writer writer, final Set<Option> options)
             throws IOException {
-        if (writer == null) {
-            throw new IllegalArgumentException("writer must not be null");
+        if (charSequence != null) {
+            escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), writer, options);
         }
-        if (charSequence == null) {
-            return;
-        }
-
-        escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), writer, options);
     }
 
     /**
@@ -236,7 +226,8 @@ public final class JavaScriptEscaper {
      * @return Escaped string or {@code null} if {@code null} was passed in.
      */
     public static String escape(final char[] charArr, final Option... options) {
-        return escape(charArr, toSet(options));
+        return (charArr == null)
+               ? null : escape(index -> Character.codePointAt(charArr, index), charArr.length, toSet(options));
     }
 
     /**
@@ -247,17 +238,8 @@ public final class JavaScriptEscaper {
      * @return Escaped string or {@code null} if {@code null} was passed in.
      */
     public static String escape(final char[] charArr, final Set<Option> options) {
-        if (charArr == null) {
-            return null;
-        }
-
-        try {
-            final StringWriter writer = new StringWriter();
-            escape(index -> Character.codePointAt(charArr, index), charArr.length, writer, options);
-            return writer.toString();
-        } catch (final IOException ex) {
-            throw new UncheckedIOException(ex);
-        }
+        return (charArr == null)
+               ? null : escape(index -> Character.codePointAt(charArr, index), charArr.length, options);
     }
 
     /**
@@ -271,7 +253,9 @@ public final class JavaScriptEscaper {
      */
     @WillNotClose
     public static void escape(final char[] charArr, final Writer writer, final Option... options) throws IOException {
-        escape(charArr, writer, toSet(options));
+        if (charArr != null) {
+            escape(index -> Character.codePointAt(charArr, index), charArr.length, writer, toSet(options));
+        }
     }
 
     /**
@@ -285,18 +269,28 @@ public final class JavaScriptEscaper {
      */
     @WillNotClose
     public static void escape(final char[] charArr, final Writer writer, final Set<Option> options) throws IOException {
-        if (writer == null) {
-            throw new IllegalArgumentException("writer must not be null");
+        if (charArr != null) {
+            escape(index -> Character.codePointAt(charArr, index), charArr.length, writer, options);
         }
-        if (charArr == null) {
-            return;
-        }
+    }
 
-        escape(index -> Character.codePointAt(charArr, index), charArr.length, writer, options);
+    private static String escape(final CodePointProvider codePointProvider, final int length,
+                                 final Set<Option> options) {
+        try {
+            final StringWriter writer = new StringWriter();
+            escape(codePointProvider, length, writer, options);
+            return writer.toString();
+        } catch (final IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
     }
 
     private static void escape(final CodePointProvider codePointProvider, final int length, final Writer writer,
                                final Set<Option> options) throws IOException {
+        if (writer == null) {
+            throw new IllegalArgumentException("writer must not be null");
+        }
+
         final boolean escapeNonAscii = options.contains(Option.ESCAPE_NON_ASCII);
 
         int index = 0;
