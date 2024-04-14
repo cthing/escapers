@@ -34,6 +34,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIndexOutOfBoundsException;
 import static org.cthing.escapers.JavaScriptEscaper.Option;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -159,6 +160,23 @@ public class JavaScriptEscaperTest {
     }
 
     @Test
+    public void testEscapeCharArrayOffsetLength() throws IOException {
+        assertThat(JavaScriptEscaper.escape("Hello \u2030 World".toCharArray(), 6, 7)).isEqualTo("\u2030 World");
+        assertThat(JavaScriptEscaper.escape("Hello \u2030 World".toCharArray(), 6, 7, Option.ESCAPE_NON_ASCII))
+                .isEqualTo("\\u2030 World");
+        assertThat(JavaScriptEscaper.escape("Hello \u2030 World".toCharArray(), 6, 7, Set.of(Option.ESCAPE_NON_ASCII)))
+                .isEqualTo("\\u2030 World");
+
+        StringWriter writer = new StringWriter();
+        JavaScriptEscaper.escape("Hello \u2030 World".toCharArray(), 6, 7, writer, Option.ESCAPE_NON_ASCII);
+        assertThat(writer).hasToString("\\u2030 World");
+
+        writer = new StringWriter();
+        JavaScriptEscaper.escape("Hello \u2030 World".toCharArray(), 6, 7, writer, Set.of(Option.ESCAPE_NON_ASCII));
+        assertThat(writer).hasToString("\\u2030 World");
+    }
+
+    @Test
     public void testErrors() throws IOException {
         assertThat(JavaScriptEscaper.escape((CharSequence)null)).isNull();
         assertThat(JavaScriptEscaper.escape((char[])null)).isNull();
@@ -172,5 +190,9 @@ public class JavaScriptEscaperTest {
         assertThatIllegalArgumentException().isThrownBy(() -> JavaScriptEscaper.escape("hello", (Writer)null));
         assertThatIllegalArgumentException().isThrownBy(() -> JavaScriptEscaper.escape("hello".toCharArray(),
                                                                                        (Writer)null));
+
+        assertThatIndexOutOfBoundsException().isThrownBy(() -> JavaScriptEscaper.escape("hello".toCharArray(), -1, 3));
+        assertThatIndexOutOfBoundsException().isThrownBy(() -> JavaScriptEscaper.escape("hello".toCharArray(), 0, 20));
+        assertThatIndexOutOfBoundsException().isThrownBy(() -> JavaScriptEscaper.escape("hello".toCharArray(), 0, -1));
     }
 }

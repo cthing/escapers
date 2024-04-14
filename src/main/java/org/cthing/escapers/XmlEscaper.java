@@ -194,7 +194,7 @@ public final class XmlEscaper extends AbstractEscaper {
     public static String escape(final CharSequence charSequence, final Option... options) {
         return (charSequence == null)
                ? null
-               : escape(index -> Character.codePointAt(charSequence, index), charSequence.length(),
+               : escape(index -> Character.codePointAt(charSequence, index), 0, charSequence.length(),
                         toEnumSet(XmlEscaper.Option.class, options));
     }
 
@@ -208,7 +208,8 @@ public final class XmlEscaper extends AbstractEscaper {
      */
     public static String escape(final CharSequence charSequence, final Set<Option> options) {
         return (charSequence == null)
-               ? null : escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), options);
+               ? null
+               : escape(index -> Character.codePointAt(charSequence, index), 0, charSequence.length(), options);
     }
 
     /**
@@ -225,7 +226,7 @@ public final class XmlEscaper extends AbstractEscaper {
     public static void escape(final CharSequence charSequence, final Writer writer, final Option... options)
             throws IOException {
         if (charSequence != null) {
-            escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), writer,
+            escape(index -> Character.codePointAt(charSequence, index), 0, charSequence.length(), writer,
                    toEnumSet(XmlEscaper.Option.class, options));
         }
     }
@@ -244,7 +245,7 @@ public final class XmlEscaper extends AbstractEscaper {
     public static void escape(final CharSequence charSequence, final Writer writer, final Set<Option> options)
             throws IOException {
         if (charSequence != null) {
-            escape(index -> Character.codePointAt(charSequence, index), charSequence.length(), writer, options);
+            escape(index -> Character.codePointAt(charSequence, index), 0, charSequence.length(), writer, options);
         }
     }
 
@@ -259,7 +260,24 @@ public final class XmlEscaper extends AbstractEscaper {
     public static String escape(final char[] charArr, final Option... options) {
         return (charArr == null)
                ? null
-               : escape(index -> Character.codePointAt(charArr, index), charArr.length,
+               : escape(index -> Character.codePointAt(charArr, index), 0, charArr.length,
+                        toEnumSet(XmlEscaper.Option.class, options));
+    }
+
+    /**
+     * Applies XML escaping to the specified character array.
+     *
+     * @param charArr Character array to escape
+     * @param offset Start index in array
+     * @param length Number of characters in array
+     * @param options Escaping options
+     * @return Escaped string or {@code null} if {@code null} was passed in. Note that invalid XML characters are
+     *      not included in the output.
+     */
+    public static String escape(final char[] charArr, final int offset, final int length, final Option... options) {
+        return (charArr == null)
+               ? null
+               : escape(index -> Character.codePointAt(charArr, index), offset, length,
                         toEnumSet(XmlEscaper.Option.class, options));
     }
 
@@ -273,7 +291,22 @@ public final class XmlEscaper extends AbstractEscaper {
      */
     public static String escape(final char[] charArr, final Set<Option> options) {
         return (charArr == null)
-               ? null : escape(index -> Character.codePointAt(charArr, index), charArr.length, options);
+               ? null : escape(index -> Character.codePointAt(charArr, index), 0, charArr.length, options);
+    }
+
+    /**
+     * Applies XML escaping to the specified character array.
+     *
+     * @param charArr Character array to escape
+     * @param offset Start index in array
+     * @param length Number of characters in array
+     * @param options Escaping options
+     * @return Escaped string or {@code null} if {@code null} was passed in. Note that invalid XML characters are
+     *      not included in the output.
+     */
+    public static String escape(final char[] charArr, final int offset, final int length, final Set<Option> options) {
+        return (charArr == null)
+               ? null : escape(index -> Character.codePointAt(charArr, index), offset, length, options);
     }
 
     /**
@@ -289,7 +322,28 @@ public final class XmlEscaper extends AbstractEscaper {
     @WillNotClose
     public static void escape(final char[] charArr, final Writer writer, final Option... options) throws IOException {
         if (charArr != null) {
-            escape(index -> Character.codePointAt(charArr, index), charArr.length, writer,
+            escape(index -> Character.codePointAt(charArr, index), 0, charArr.length, writer,
+                   toEnumSet(XmlEscaper.Option.class, options));
+        }
+    }
+
+    /**
+     * Applies XML escaping to the specified character array and writes the result to the specified writer. Note that
+     * invalid XML characters are not included in the output.
+     *
+     * @param charArr Character array to escape
+     * @param offset Start index in array
+     * @param length Number of characters in array
+     * @param writer Writer to which the escaped string is written
+     * @param options Escaping options
+     * @throws IOException if there was a problem writing the escaped string
+     * @throws IllegalArgumentException if the writer is {@code null}
+     */
+    @WillNotClose
+    public static void escape(final char[] charArr, final int offset, final int length, final Writer writer,
+                              final Option... options) throws IOException {
+        if (charArr != null) {
+            escape(index -> Character.codePointAt(charArr, index), offset, length, writer,
                    toEnumSet(XmlEscaper.Option.class, options));
         }
     }
@@ -307,33 +361,57 @@ public final class XmlEscaper extends AbstractEscaper {
     @WillNotClose
     public static void escape(final char[] charArr, final Writer writer, final Set<Option> options) throws IOException {
         if (charArr != null) {
-            escape(index -> Character.codePointAt(charArr, index), charArr.length, writer, options);
+            escape(index -> Character.codePointAt(charArr, index), 0, charArr.length, writer, options);
         }
     }
 
-    private static String escape(final CodePointProvider codePointProvider, final int length,
+    /**
+     * Applies XML escaping to the specified character array and writes the result to the specified writer. Note that
+     * invalid XML characters are not included in the output.
+     *
+     * @param charArr Character array to escape
+     * @param offset Start index in array
+     * @param length Number of characters in array
+     * @param writer Writer to which the escaped string is written
+     * @param options Escaping options
+     * @throws IOException if there was a problem writing the escaped string
+     * @throws IllegalArgumentException if the writer is {@code null}
+     */
+    @WillNotClose
+    public static void escape(final char[] charArr, final int offset, final int length, final Writer writer,
+                              final Set<Option> options) throws IOException {
+        if (charArr != null) {
+            escape(index -> Character.codePointAt(charArr, index), offset, length, writer, options);
+        }
+    }
+
+    private static String escape(final CodePointProvider codePointProvider, final int offset, final int length,
                                  final Set<Option> options) {
         try {
             final StringWriter writer = new StringWriter();
-            escape(codePointProvider, length, writer, options);
+            escape(codePointProvider, offset, length, writer, options);
             return writer.toString();
         } catch (final IOException ex) {
             throw new UncheckedIOException(ex);
         }
     }
 
-    private static void escape(final CodePointProvider codePointProvider, final int length, final Writer writer,
-                               final Set<Option> options) throws IOException {
+    private static void escape(final CodePointProvider codePointProvider, final int offset, final int length,
+                               final Writer writer, final Set<Option> options) throws IOException {
         if (writer == null) {
             throw new IllegalArgumentException("writer must not be null");
+        }
+        if (length < 0) {
+            throw new IndexOutOfBoundsException("length must be greater than or equal to 0");
         }
 
         final boolean escapeNonAscii = options.contains(Option.ESCAPE_NON_ASCII);
         final CharEscaper charEscaper = options.contains(Option.USE_DECIMAL)
                                         ? AbstractEscaper::escapeDecimalEntity : AbstractEscaper::escapeHexEntity;
 
-        int index = 0;
-        while (index < length) {
+        int index = offset;
+        final int end = offset + length;
+        while (index < end) {
             final int cp = codePointProvider.codePointAt(index);
             switch (cp) {
                 case '\'' -> writer.write("&apos;");

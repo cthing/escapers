@@ -312,12 +312,41 @@ public final class YamlEscaper extends AbstractEscaper {
      * Applies YAML escaping to the specified character array.
      *
      * @param charArr Character array to escape
+     * @param offset Start index in array
+     * @param length Number of characters in array
+     * @param options Escaping options
+     * @return Escaped string or {@code null} if {@code null} was passed in. Note that invalid XML characters are
+     *      not included in the output.
+     */
+    public static String escape(final char[] charArr, final int offset, final int length, final Option... options) {
+        return (charArr == null) ? null : escape(new String(charArr, offset, length),
+                                                 toEnumSet(YamlEscaper.Option.class, options));
+    }
+
+    /**
+     * Applies YAML escaping to the specified character array.
+     *
+     * @param charArr Character array to escape
      * @param options Escaping options
      * @return Escaped string or {@code null} if {@code null} was passed in. Note that invalid XML characters are
      *      not included in the output.
      */
     public static String escape(final char[] charArr, final Set<Option> options) {
         return (charArr == null) ? null : escape(new String(charArr), options);
+    }
+
+    /**
+     * Applies YAML escaping to the specified character array.
+     *
+     * @param charArr Character array to escape
+     * @param offset Start index in array
+     * @param length Number of characters in array
+     * @param options Escaping options
+     * @return Escaped string or {@code null} if {@code null} was passed in. Note that invalid XML characters are
+     *      not included in the output.
+     */
+    public static String escape(final char[] charArr, final int offset, final int length, final Set<Option> options) {
+        return (charArr == null) ? null : escape(new String(charArr, offset, length), options);
     }
 
     /**
@@ -340,6 +369,25 @@ public final class YamlEscaper extends AbstractEscaper {
      * Applies YAML escaping to the specified character array and writes the result to the specified writer.
      *
      * @param charArr Character array to escape
+     * @param offset Start index in array
+     * @param length Number of characters in array
+     * @param writer Writer to which the escaped string is written
+     * @param options Escaping options
+     * @throws IOException if there was a problem writing the escaped string
+     * @throws IllegalArgumentException if the writer is {@code null}
+     */
+    @WillNotClose
+    public static void escape(final char[] charArr, final int offset, final int length, final Writer writer,
+                              final Option... options) throws IOException {
+        if (charArr != null) {
+            escape(new String(charArr, offset, length), writer, toEnumSet(YamlEscaper.Option.class, options));
+        }
+    }
+
+    /**
+     * Applies YAML escaping to the specified character array and writes the result to the specified writer.
+     *
+     * @param charArr Character array to escape
      * @param writer Writer to which the escaped string is written
      * @param options Escaping options
      * @throws IOException if there was a problem writing the escaped string
@@ -349,6 +397,24 @@ public final class YamlEscaper extends AbstractEscaper {
     public static void escape(final char[] charArr, final Writer writer, final Set<Option> options) throws IOException {
         if (charArr != null) {
             escape(new String(charArr), writer, options);
+        }
+    }
+    /**
+     * Applies YAML escaping to the specified character array and writes the result to the specified writer.
+     *
+     * @param charArr Character array to escape
+     * @param offset Start index in array
+     * @param length Number of characters in array
+     * @param writer Writer to which the escaped string is written
+     * @param options Escaping options
+     * @throws IOException if there was a problem writing the escaped string
+     * @throws IllegalArgumentException if the writer is {@code null}
+     */
+    @WillNotClose
+    public static void escape(final char[] charArr, final int offset, final int length, final Writer writer,
+                              final Set<Option> options) throws IOException {
+        if (charArr != null) {
+            escape(new String(charArr, offset, length), writer, options);
         }
     }
 

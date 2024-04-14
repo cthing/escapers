@@ -34,6 +34,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIndexOutOfBoundsException;
 import static org.cthing.escapers.XmlEscaper.Option;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -175,6 +176,23 @@ public class XmlEscaperTest {
     }
 
     @Test
+    public void testEscapeCharArrayOffsetLength() throws IOException {
+        assertThat(XmlEscaper.escape("Hello & World".toCharArray(), 6, 7)).isEqualTo("&amp; World");
+        assertThat(XmlEscaper.escape("Hello & World".toCharArray(), 6, 7, Option.ESCAPE_NON_ASCII))
+                .isEqualTo("&amp; World");
+        assertThat(XmlEscaper.escape("Hello & World".toCharArray(), 6, 7, Set.of(Option.ESCAPE_NON_ASCII)))
+                .isEqualTo("&amp; World");
+
+        StringWriter writer = new StringWriter();
+        XmlEscaper.escape("Hello & World".toCharArray(), 6, 7, writer, Option.ESCAPE_NON_ASCII);
+        assertThat(writer).hasToString("&amp; World");
+
+        writer = new StringWriter();
+        XmlEscaper.escape("Hello & World".toCharArray(), 6, 7, writer, Set.of(Option.ESCAPE_NON_ASCII));
+        assertThat(writer).hasToString("&amp; World");
+    }
+
+    @Test
     public void testErrors() throws IOException {
         assertThat(XmlEscaper.escape((CharSequence)null)).isNull();
         assertThat(XmlEscaper.escape((char[])null)).isNull();
@@ -187,5 +205,9 @@ public class XmlEscaperTest {
 
         assertThatIllegalArgumentException().isThrownBy(() -> XmlEscaper.escape("hello", (Writer)null));
         assertThatIllegalArgumentException().isThrownBy(() -> XmlEscaper.escape("hello".toCharArray(), (Writer)null));
+
+        assertThatIndexOutOfBoundsException().isThrownBy(() -> XmlEscaper.escape("hello".toCharArray(), -1, 3));
+        assertThatIndexOutOfBoundsException().isThrownBy(() -> XmlEscaper.escape("hello".toCharArray(), 0, 20));
+        assertThatIndexOutOfBoundsException().isThrownBy(() -> XmlEscaper.escape("hello".toCharArray(), 0, -1));
     }
 }

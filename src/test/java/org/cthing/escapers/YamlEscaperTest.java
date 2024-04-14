@@ -35,6 +35,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIndexOutOfBoundsException;
 import static org.cthing.escapers.YamlEscaper.Option;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -162,10 +163,13 @@ public class YamlEscaperTest {
                 arguments("a\u0001", "\"a\\x01\"", Option.ESCAPE_NON_ASCII),
                 arguments("a\u00FF", "a\u00FF"),
                 arguments("a\u00FF", "\"a\\xFF\"", Option.ESCAPE_NON_ASCII),
+                arguments("a\uFF00", "a\uFF00"),
                 arguments("a\u2030", "a\u2030"),
                 arguments("a\u2030", "\"a\\u2030\"", Option.ESCAPE_NON_ASCII),
                 arguments("a\uD83D\uDE03", "a\uD83D\uDE03"),
-                arguments("a\uD83D\uDE03", "\"a\\U0001F603\"", Option.ESCAPE_NON_ASCII)
+                arguments("a\uD83D\uDE03", "\"a\\U0001F603\"", Option.ESCAPE_NON_ASCII),
+                arguments("\n\u2030", "\"\\n\u2030\""),
+                arguments("\n\uD83D\uDE03", "\"\\n\uD83D\uDE03\"")
         );
     }
 
@@ -245,6 +249,23 @@ public class YamlEscaperTest {
     }
 
     @Test
+    public void testEscapeCharArrayOffsetLength() throws IOException {
+        assertThat(YamlEscaper.escape("Hello \n World".toCharArray(), 6, 7)).isEqualTo("\"\\n World\"");
+        assertThat(YamlEscaper.escape("Hello \n World".toCharArray(), 6, 7, Option.ESCAPE_NON_ASCII))
+                .isEqualTo("\"\\n World\"");
+        assertThat(YamlEscaper.escape("Hello \n World".toCharArray(), 6, 7, Set.of(Option.ESCAPE_NON_ASCII)))
+                .isEqualTo("\"\\n World\"");
+
+        StringWriter writer = new StringWriter();
+        YamlEscaper.escape("Hello \n World".toCharArray(), 6, 7, writer, Option.ESCAPE_NON_ASCII);
+        assertThat(writer).hasToString("\"\\n World\"");
+
+        writer = new StringWriter();
+        YamlEscaper.escape("Hello \n World".toCharArray(), 6, 7, writer, Set.of(Option.ESCAPE_NON_ASCII));
+        assertThat(writer).hasToString("\"\\n World\"");
+    }
+
+    @Test
     public void testErrors() throws IOException {
         assertThat(YamlEscaper.escape((CharSequence)null)).isNull();
         assertThat(YamlEscaper.escape((char[])null)).isNull();
@@ -257,5 +278,9 @@ public class YamlEscaperTest {
 
         assertThatIllegalArgumentException().isThrownBy(() -> YamlEscaper.escape("hello", (Writer)null));
         assertThatIllegalArgumentException().isThrownBy(() -> YamlEscaper.escape("hello".toCharArray(), (Writer)null));
+
+        assertThatIndexOutOfBoundsException().isThrownBy(() -> YamlEscaper.escape("hello".toCharArray(), -1, 3));
+        assertThatIndexOutOfBoundsException().isThrownBy(() -> YamlEscaper.escape("hello".toCharArray(), 0, 20));
+        assertThatIndexOutOfBoundsException().isThrownBy(() -> YamlEscaper.escape("hello".toCharArray(), 0, -1));
     }
 }

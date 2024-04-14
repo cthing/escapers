@@ -27,6 +27,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIndexOutOfBoundsException;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 
@@ -63,6 +64,15 @@ public class CsvEscaperTest {
     }
 
     @Test
+    public void testEscapeCharArrayOffsetLength() throws IOException {
+        assertThat(CsvEscaper.escape("Hello & World".toCharArray(), 6, 7)).isEqualTo("& World");
+
+        final StringWriter writer = new StringWriter();
+        CsvEscaper.escape("Hello & World".toCharArray(), 6, 7, writer);
+        assertThat(writer).hasToString("& World");
+    }
+
+    @Test
     public void testErrors() throws IOException {
         assertThat(CsvEscaper.escape((CharSequence)null)).isNull();
         assertThat(CsvEscaper.escape((char[])null)).isNull();
@@ -75,5 +85,9 @@ public class CsvEscaperTest {
 
         assertThatIllegalArgumentException().isThrownBy(() -> CsvEscaper.escape("hello", null));
         assertThatIllegalArgumentException().isThrownBy(() -> CsvEscaper.escape("hello".toCharArray(), null));
+
+        assertThatIndexOutOfBoundsException().isThrownBy(() -> CsvEscaper.escape("hello".toCharArray(), -1, 3));
+        assertThatIndexOutOfBoundsException().isThrownBy(() -> CsvEscaper.escape("hello".toCharArray(), 0, 20));
+        assertThatIndexOutOfBoundsException().isThrownBy(() -> CsvEscaper.escape("hello".toCharArray(), 0, -1));
     }
 }

@@ -34,6 +34,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIndexOutOfBoundsException;
 import static org.cthing.escapers.HtmlEscaper.Option;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -172,6 +173,23 @@ public class HtmlEscaperTest {
     }
 
     @Test
+    public void testEscapeCharArrayOffsetLength() throws IOException {
+        assertThat(HtmlEscaper.escape("Hello & World".toCharArray(), 6, 7)).isEqualTo("&amp; World");
+        assertThat(HtmlEscaper.escape("Hello & World".toCharArray(), 6, 7, Option.ESCAPE_NON_ASCII))
+                .isEqualTo("&amp; World");
+        assertThat(HtmlEscaper.escape("Hello & World".toCharArray(), 6, 7, Set.of(Option.ESCAPE_NON_ASCII)))
+                .isEqualTo("&amp; World");
+
+        StringWriter writer = new StringWriter();
+        HtmlEscaper.escape("Hello & World".toCharArray(), 6, 7, writer, Option.ESCAPE_NON_ASCII);
+        assertThat(writer).hasToString("&amp; World");
+
+        writer = new StringWriter();
+        HtmlEscaper.escape("Hello & World".toCharArray(), 6, 7, writer, Set.of(Option.ESCAPE_NON_ASCII));
+        assertThat(writer).hasToString("&amp; World");
+    }
+
+    @Test
     public void testErrors() throws IOException {
         assertThat(HtmlEscaper.escape((CharSequence)null)).isNull();
         assertThat(HtmlEscaper.escape((char[])null)).isNull();
@@ -184,5 +202,9 @@ public class HtmlEscaperTest {
 
         assertThatIllegalArgumentException().isThrownBy(() -> HtmlEscaper.escape("hello", (Writer)null));
         assertThatIllegalArgumentException().isThrownBy(() -> HtmlEscaper.escape("hello".toCharArray(), (Writer)null));
+
+        assertThatIndexOutOfBoundsException().isThrownBy(() -> HtmlEscaper.escape("hello".toCharArray(), -1, 3));
+        assertThatIndexOutOfBoundsException().isThrownBy(() -> HtmlEscaper.escape("hello".toCharArray(), 0, 20));
+        assertThatIndexOutOfBoundsException().isThrownBy(() -> HtmlEscaper.escape("hello".toCharArray(), 0, -1));
     }
 }

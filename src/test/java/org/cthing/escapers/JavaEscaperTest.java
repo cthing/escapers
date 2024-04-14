@@ -34,6 +34,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIndexOutOfBoundsException;
 import static org.cthing.escapers.JavaEscaper.Option;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -177,6 +178,23 @@ public class JavaEscaperTest {
     }
 
     @Test
+    public void testEscapeCharArrayOffsetLength() throws IOException {
+        assertThat(JavaEscaper.escape("Hello \u2030 World".toCharArray(), 6, 7)).isEqualTo("\u2030 World");
+        assertThat(JavaEscaper.escape("Hello \u2030 World".toCharArray(), 6, 7, Option.ESCAPE_NON_ASCII))
+                .isEqualTo("\\u2030 World");
+        assertThat(JavaEscaper.escape("Hello \u2030 World".toCharArray(), 6, 7, Set.of(Option.ESCAPE_NON_ASCII)))
+                .isEqualTo("\\u2030 World");
+
+        StringWriter writer = new StringWriter();
+        JavaEscaper.escape("Hello \u2030 World".toCharArray(), 6, 7, writer, Option.ESCAPE_NON_ASCII);
+        assertThat(writer).hasToString("\\u2030 World");
+
+        writer = new StringWriter();
+        JavaEscaper.escape("Hello \u2030 World".toCharArray(), 6, 7, writer, Set.of(Option.ESCAPE_NON_ASCII));
+        assertThat(writer).hasToString("\\u2030 World");
+    }
+
+    @Test
     public void testErrors() throws IOException {
         assertThat(JavaEscaper.escape((CharSequence)null)).isNull();
         assertThat(JavaEscaper.escape((char[])null)).isNull();
@@ -189,5 +207,9 @@ public class JavaEscaperTest {
 
         assertThatIllegalArgumentException().isThrownBy(() -> JavaEscaper.escape("hello", (Writer)null));
         assertThatIllegalArgumentException().isThrownBy(() -> JavaEscaper.escape("hello".toCharArray(), (Writer)null));
+
+        assertThatIndexOutOfBoundsException().isThrownBy(() -> JavaEscaper.escape("hello".toCharArray(), -1, 3));
+        assertThatIndexOutOfBoundsException().isThrownBy(() -> JavaEscaper.escape("hello".toCharArray(), 0, 20));
+        assertThatIndexOutOfBoundsException().isThrownBy(() -> JavaEscaper.escape("hello".toCharArray(), 0, -1));
     }
 }
