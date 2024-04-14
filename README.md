@@ -1,5 +1,9 @@
 # ![C Thing Software](https://www.cthing.com/branding/CThingSoftware-57x60.png "C Thing Software") escapers
 
+[![CI](https://github.com/cthing/escapers/actions/workflows/ci.yml/badge.svg)](https://github.com/cthing/escapers/actions/workflows/ci.yml)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.cthing/escapers/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.cthing/escapers)
+[![javadoc](https://javadoc.io/badge2/org.cthing/xmlwriter/javadoc.svg)](https://javadoc.io/doc/org.cthing/escapers)
+
 A Java library that escapes strings for CSV, HTML, Java, JavaScript, JSON, XML and YAML.
 
 ## Usage
@@ -38,8 +42,8 @@ Escaping for each supported language follows the pattern:
                                              HtmlEscaper.Option.USE_DECIMAL); 
    ```
    
-The Javadoc for each escaper provides detailed information about the character replacements performed and the
-options supported.
+The [Javadoc](https://javadoc.io/doc/org.cthing/escapers) for each escaper provides detailed information about
+the character replacements performed and the options supported.
 
 ## Building
 The library is compiled for Java 17. If a Java 17 toolchain is not available, one will be downloaded.
