@@ -1,17 +1,6 @@
 /*
  * Copyright 2024 C Thing Software
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 package org.cthing.escapers;
@@ -59,8 +48,7 @@ final class HexUtils {
     static void writeHex4(final int value, final Writer writer) throws IOException {
         writer.write(HEX_DIGITS[value >> 12 & 0xF]);
         writer.write(HEX_DIGITS[value >> 8 & 0xF]);
-        writer.write(HEX_DIGITS[value >> 4 & 0xF]);
-        writer.write(HEX_DIGITS[value & 0xF]);
+        writeHex2(value, writer);
     }
 
     /**
@@ -76,10 +64,7 @@ final class HexUtils {
         writer.write(HEX_DIGITS[value >> 24 & 0xF]);
         writer.write(HEX_DIGITS[value >> 20 & 0xF]);
         writer.write(HEX_DIGITS[value >> 16 & 0xF]);
-        writer.write(HEX_DIGITS[value >> 12 & 0xF]);
-        writer.write(HEX_DIGITS[value >> 8 & 0xF]);
-        writer.write(HEX_DIGITS[value >> 4 & 0xF]);
-        writer.write(HEX_DIGITS[value & 0xF]);
+        writeHex4(value, writer);
     }
 
     /**
