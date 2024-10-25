@@ -7,7 +7,6 @@ package org.cthing.escapers;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -22,7 +21,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIndexOutOfBoundsException;
 import static org.cthing.escapers.JavaScriptEscaper.Option;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -175,10 +173,6 @@ public class JavaScriptEscaperTest {
         assertThat(writer.toString()).isEmpty();
         JavaScriptEscaper.escape((char[])null, writer);
         assertThat(writer.toString()).isEmpty();
-
-        assertThatIllegalArgumentException().isThrownBy(() -> JavaScriptEscaper.escape("hello", (Writer)null));
-        assertThatIllegalArgumentException().isThrownBy(() -> JavaScriptEscaper.escape("hello".toCharArray(),
-                                                                                       (Writer)null));
 
         assertThatIndexOutOfBoundsException().isThrownBy(() -> JavaScriptEscaper.escape("hello".toCharArray(), -1, 3));
         assertThatIndexOutOfBoundsException().isThrownBy(() -> JavaScriptEscaper.escape("hello".toCharArray(), 0, 20));

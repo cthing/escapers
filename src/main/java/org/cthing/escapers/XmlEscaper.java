@@ -11,9 +11,8 @@ import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.Set;
 
-import javax.annotation.WillNotClose;
-
 import org.cthing.annotations.NoCoverageGenerated;
+import org.jspecify.annotations.Nullable;
 
 
 /**
@@ -180,7 +179,8 @@ public final class XmlEscaper extends AbstractEscaper {
      * @return Escaped string or {@code null} if {@code null} was passed in. Note that invalid XML characters are
      *      not included in the output.
      */
-    public static String escape(final CharSequence charSequence, final Option... options) {
+    @Nullable
+    public static String escape(@Nullable final CharSequence charSequence, final Option... options) {
         return (charSequence == null)
                ? null
                : escape(index -> Character.codePointAt(charSequence, index), 0, charSequence.length(),
@@ -195,7 +195,8 @@ public final class XmlEscaper extends AbstractEscaper {
      * @return Escaped string or {@code null} if {@code null} was passed in. Note that invalid XML characters are
      *      not included in the output.
      */
-    public static String escape(final CharSequence charSequence, final Set<Option> options) {
+    @Nullable
+    public static String escape(@Nullable final CharSequence charSequence, final Set<Option> options) {
         return (charSequence == null)
                ? null
                : escape(index -> Character.codePointAt(charSequence, index), 0, charSequence.length(), options);
@@ -206,13 +207,12 @@ public final class XmlEscaper extends AbstractEscaper {
      * invalid XML characters are not included in the output.
      *
      * @param charSequence String to escape
-     * @param writer Writer to which the escaped string is written
+     * @param writer Writer to which the escaped string is written. Will not be closed by this method.
      * @param options Escaping options
      * @throws IOException if there was a problem writing the escaped string
      * @throws IllegalArgumentException if the writer is {@code null}
      */
-    @WillNotClose
-    public static void escape(final CharSequence charSequence, final Writer writer, final Option... options)
+    public static void escape(@Nullable final CharSequence charSequence, final Writer writer, final Option... options)
             throws IOException {
         if (charSequence != null) {
             escape(index -> Character.codePointAt(charSequence, index), 0, charSequence.length(), writer,
@@ -225,13 +225,12 @@ public final class XmlEscaper extends AbstractEscaper {
      * invalid XML characters are not included in the output.
      *
      * @param charSequence String to escape
-     * @param writer Writer to which the escaped string is written
+     * @param writer Writer to which the escaped string is written. Will not be closed by this method.
      * @param options Escaping options
      * @throws IOException if there was a problem writing the escaped string
      * @throws IllegalArgumentException if the writer is {@code null}
      */
-    @WillNotClose
-    public static void escape(final CharSequence charSequence, final Writer writer, final Set<Option> options)
+    public static void escape(@Nullable final CharSequence charSequence, final Writer writer, final Set<Option> options)
             throws IOException {
         if (charSequence != null) {
             escape(index -> Character.codePointAt(charSequence, index), 0, charSequence.length(), writer, options);
@@ -246,7 +245,8 @@ public final class XmlEscaper extends AbstractEscaper {
      * @return Escaped string or {@code null} if {@code null} was passed in. Note that invalid XML characters are
      *      not included in the output.
      */
-    public static String escape(final char[] charArr, final Option... options) {
+    @Nullable
+    public static String escape(final char @Nullable[] charArr, final Option... options) {
         return (charArr == null)
                ? null
                : escape(index -> Character.codePointAt(charArr, index), 0, charArr.length,
@@ -263,7 +263,9 @@ public final class XmlEscaper extends AbstractEscaper {
      * @return Escaped string or {@code null} if {@code null} was passed in. Note that invalid XML characters are
      *      not included in the output.
      */
-    public static String escape(final char[] charArr, final int offset, final int length, final Option... options) {
+    @Nullable
+    public static String escape(final char @Nullable[] charArr, final int offset, final int length,
+                                final Option... options) {
         return (charArr == null)
                ? null
                : escape(index -> Character.codePointAt(charArr, index), offset, length,
@@ -278,7 +280,8 @@ public final class XmlEscaper extends AbstractEscaper {
      * @return Escaped string or {@code null} if {@code null} was passed in. Note that invalid XML characters are
      *      not included in the output.
      */
-    public static String escape(final char[] charArr, final Set<Option> options) {
+    @Nullable
+    public static String escape(final char @Nullable[] charArr, final Set<Option> options) {
         return (charArr == null)
                ? null : escape(index -> Character.codePointAt(charArr, index), 0, charArr.length, options);
     }
@@ -293,7 +296,9 @@ public final class XmlEscaper extends AbstractEscaper {
      * @return Escaped string or {@code null} if {@code null} was passed in. Note that invalid XML characters are
      *      not included in the output.
      */
-    public static String escape(final char[] charArr, final int offset, final int length, final Set<Option> options) {
+    @Nullable
+    public static String escape(final char @Nullable[] charArr, final int offset, final int length,
+                                final Set<Option> options) {
         return (charArr == null)
                ? null : escape(index -> Character.codePointAt(charArr, index), offset, length, options);
     }
@@ -303,13 +308,13 @@ public final class XmlEscaper extends AbstractEscaper {
      * invalid XML characters are not included in the output.
      *
      * @param charArr Character array to escape
-     * @param writer Writer to which the escaped string is written
+     * @param writer Writer to which the escaped string is written. Will not be closed by this method.
      * @param options Escaping options
      * @throws IOException if there was a problem writing the escaped string
      * @throws IllegalArgumentException if the writer is {@code null}
      */
-    @WillNotClose
-    public static void escape(final char[] charArr, final Writer writer, final Option... options) throws IOException {
+    public static void escape(final char @Nullable[] charArr, final Writer writer, final Option... options)
+            throws IOException {
         if (charArr != null) {
             escape(index -> Character.codePointAt(charArr, index), 0, charArr.length, writer,
                    toEnumSet(XmlEscaper.Option.class, options));
@@ -323,13 +328,12 @@ public final class XmlEscaper extends AbstractEscaper {
      * @param charArr Character array to escape
      * @param offset Start index in array
      * @param length Number of characters in array
-     * @param writer Writer to which the escaped string is written
+     * @param writer Writer to which the escaped string is written. Will not be closed by this method.
      * @param options Escaping options
      * @throws IOException if there was a problem writing the escaped string
      * @throws IllegalArgumentException if the writer is {@code null}
      */
-    @WillNotClose
-    public static void escape(final char[] charArr, final int offset, final int length, final Writer writer,
+    public static void escape(final char @Nullable[] charArr, final int offset, final int length, final Writer writer,
                               final Option... options) throws IOException {
         if (charArr != null) {
             escape(index -> Character.codePointAt(charArr, index), offset, length, writer,
@@ -342,13 +346,13 @@ public final class XmlEscaper extends AbstractEscaper {
      * invalid XML characters are not included in the output.
      *
      * @param charArr Character array to escape
-     * @param writer Writer to which the escaped string is written
+     * @param writer Writer to which the escaped string is written. Will not be closed by this method.
      * @param options Escaping options
      * @throws IOException if there was a problem writing the escaped string
      * @throws IllegalArgumentException if the writer is {@code null}
      */
-    @WillNotClose
-    public static void escape(final char[] charArr, final Writer writer, final Set<Option> options) throws IOException {
+    public static void escape(final char @Nullable[] charArr, final Writer writer, final Set<Option> options)
+            throws IOException {
         if (charArr != null) {
             escape(index -> Character.codePointAt(charArr, index), 0, charArr.length, writer, options);
         }
@@ -361,13 +365,12 @@ public final class XmlEscaper extends AbstractEscaper {
      * @param charArr Character array to escape
      * @param offset Start index in array
      * @param length Number of characters in array
-     * @param writer Writer to which the escaped string is written
+     * @param writer Writer to which the escaped string is written. Will not be closed by this method.
      * @param options Escaping options
      * @throws IOException if there was a problem writing the escaped string
      * @throws IllegalArgumentException if the writer is {@code null}
      */
-    @WillNotClose
-    public static void escape(final char[] charArr, final int offset, final int length, final Writer writer,
+    public static void escape(final char @Nullable[] charArr, final int offset, final int length, final Writer writer,
                               final Set<Option> options) throws IOException {
         if (charArr != null) {
             escape(index -> Character.codePointAt(charArr, index), offset, length, writer, options);
@@ -387,9 +390,6 @@ public final class XmlEscaper extends AbstractEscaper {
 
     private static void escape(final CodePointProvider codePointProvider, final int offset, final int length,
                                final Writer writer, final Set<Option> options) throws IOException {
-        if (writer == null) {
-            throw new IllegalArgumentException("writer must not be null");
-        }
         if (length < 0) {
             throw new IndexOutOfBoundsException("length must be greater than or equal to 0");
         }

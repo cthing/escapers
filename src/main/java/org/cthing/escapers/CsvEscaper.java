@@ -10,9 +10,8 @@ import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
 
-import javax.annotation.WillNotClose;
-
 import org.cthing.annotations.NoCoverageGenerated;
+import org.jspecify.annotations.Nullable;
 
 
 /**
@@ -34,7 +33,8 @@ public final class CsvEscaper extends AbstractEscaper {
      * @param charSequence String to escape
      * @return Escaped string or {@code null} if {@code null} was passed in.
      */
-    public static String escape(final CharSequence charSequence) {
+    @Nullable
+    public static String escape(@Nullable final CharSequence charSequence) {
         return (charSequence == null)
                ? null : escape(index -> Character.codePointAt(charSequence, index), 0, charSequence.length());
     }
@@ -43,12 +43,11 @@ public final class CsvEscaper extends AbstractEscaper {
      * Applies CSV escaping to the specified string and writes the result to the specified writer.
      *
      * @param charSequence String to escape
-     * @param writer Writer to which the escaped string is written
+     * @param writer Writer to which the escaped string is written. Will not be closed by this method.
      * @throws IOException if there was a problem writing the escaped string
      * @throws IllegalArgumentException if the writer is {@code null}
      */
-    @WillNotClose
-    public static void escape(final CharSequence charSequence, final Writer writer) throws IOException {
+    public static void escape(@Nullable final CharSequence charSequence, final Writer writer) throws IOException {
         if (charSequence != null) {
             escape(index -> Character.codePointAt(charSequence, index), 0, charSequence.length(), writer);
         }
@@ -60,7 +59,8 @@ public final class CsvEscaper extends AbstractEscaper {
      * @param charArr Character array to escape
      * @return Escaped string or {@code null} if {@code null} was passed in.
      */
-    public static String escape(final char[] charArr) {
+    @Nullable
+    public static String escape(final char @Nullable[] charArr) {
         return (charArr == null) ? null : escape(index -> Character.codePointAt(charArr, index), 0, charArr.length);
     }
 
@@ -72,7 +72,8 @@ public final class CsvEscaper extends AbstractEscaper {
      * @param length Number of characters in array
      * @return Escaped string or {@code null} if {@code null} was passed in.
      */
-    public static String escape(final char[] charArr, final int offset, final int length) {
+    @Nullable
+    public static String escape(final char @Nullable[] charArr, final int offset, final int length) {
         return (charArr == null) ? null : escape(index -> Character.codePointAt(charArr, index), offset, length);
     }
 
@@ -80,12 +81,11 @@ public final class CsvEscaper extends AbstractEscaper {
      * Applies CSV escaping to the specified character array and writes the result to the specified writer.
      *
      * @param charArr Character array to escape
-     * @param writer Writer to which the escaped string is written
+     * @param writer Writer to which the escaped string is written. Will not be closed by this method.
      * @throws IOException if there was a problem writing the escaped string
      * @throws IllegalArgumentException if the writer is {@code null}
      */
-    @WillNotClose
-    public static void escape(final char[] charArr, final Writer writer) throws IOException {
+    public static void escape(final char @Nullable[] charArr, final Writer writer) throws IOException {
         if (charArr != null) {
             escape(index -> Character.codePointAt(charArr, index), 0, charArr.length, writer);
         }
@@ -97,12 +97,11 @@ public final class CsvEscaper extends AbstractEscaper {
      * @param charArr Character array to escape
      * @param offset Start index in array
      * @param length Number of characters in array
-     * @param writer Writer to which the escaped string is written
+     * @param writer Writer to which the escaped string is written. Will not be closed by this method.
      * @throws IOException if there was a problem writing the escaped string
      * @throws IllegalArgumentException if the writer is {@code null}
      */
-    @WillNotClose
-    public static void escape(final char[] charArr, final int offset, final int length, final Writer writer)
+    public static void escape(final char @Nullable[] charArr, final int offset, final int length, final Writer writer)
             throws IOException {
         if (charArr != null) {
             escape(index -> Character.codePointAt(charArr, index), offset, length, writer);
@@ -120,11 +119,7 @@ public final class CsvEscaper extends AbstractEscaper {
     }
 
     private static void escape(final CodePointProvider codePointProvider, final int offset, final int length,
-                               final Writer writer)
-            throws IOException {
-        if (writer == null) {
-            throw new IllegalArgumentException("writer must not be null");
-        }
+                               final Writer writer) throws IOException {
         if (length < 0) {
             throw new IndexOutOfBoundsException("length must be greater than or equal to 0");
         }

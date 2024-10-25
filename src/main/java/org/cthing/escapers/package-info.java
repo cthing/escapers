@@ -15,4 +15,7 @@
  *     <li>YAML</li>
  * </ul>
  */
+@NullMarked
 package org.cthing.escapers;
+
+import org.jspecify.annotations.NullMarked;

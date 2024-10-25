@@ -28,7 +28,7 @@ plugins {
     alias(libs.plugins.versions)
 }
 
-version = ProjectVersion("1.0.1", BuildType.snapshot)
+version = ProjectVersion("2.0.0", BuildType.snapshot)
 group = "org.cthing"
 description = "A Java library for escaping strings for use in various languages (e.g. XML)."
 
@@ -39,9 +39,9 @@ java {
 }
 
 dependencies {
-    api(libs.jsr305)
+    api(libs.jspecify)
 
-    implementation(libs.cthingAnnots)
+    compileOnly(libs.cthingAnnots)
 
     testImplementation(libs.junitApi)
     testImplementation(libs.junitParams)

@@ -7,7 +7,6 @@ package org.cthing.escapers;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -23,7 +22,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIndexOutOfBoundsException;
 import static org.cthing.escapers.YamlEscaper.Option;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -264,9 +262,6 @@ public class YamlEscaperTest {
         assertThat(writer.toString()).isEmpty();
         YamlEscaper.escape((char[])null, writer);
         assertThat(writer.toString()).isEmpty();
-
-        assertThatIllegalArgumentException().isThrownBy(() -> YamlEscaper.escape("hello", (Writer)null));
-        assertThatIllegalArgumentException().isThrownBy(() -> YamlEscaper.escape("hello".toCharArray(), (Writer)null));
 
         assertThatIndexOutOfBoundsException().isThrownBy(() -> YamlEscaper.escape("hello".toCharArray(), -1, 3));
         assertThatIndexOutOfBoundsException().isThrownBy(() -> YamlEscaper.escape("hello".toCharArray(), 0, 20));

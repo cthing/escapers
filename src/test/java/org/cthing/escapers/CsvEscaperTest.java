@@ -15,7 +15,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIndexOutOfBoundsException;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -70,9 +69,6 @@ public class CsvEscaperTest {
         assertThat(writer.toString()).isEmpty();
         CsvEscaper.escape((char[])null, writer);
         assertThat(writer.toString()).isEmpty();
-
-        assertThatIllegalArgumentException().isThrownBy(() -> CsvEscaper.escape("hello", null));
-        assertThatIllegalArgumentException().isThrownBy(() -> CsvEscaper.escape("hello".toCharArray(), null));
 
         assertThatIndexOutOfBoundsException().isThrownBy(() -> CsvEscaper.escape("hello".toCharArray(), -1, 3));
         assertThatIndexOutOfBoundsException().isThrownBy(() -> CsvEscaper.escape("hello".toCharArray(), 0, 20));
