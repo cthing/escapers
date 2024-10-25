@@ -13,12 +13,12 @@ following Maven dependency:
 <dependency>
   <groupId>org.cthing</groupId>
   <artifactId>escapers</artifactId>
-  <version>1.0.0</version>
+  <version>2.0.0</version>
 </dependency>
 ```
 or the following Gradle dependency:
 ```kotlin
-implementation("org.cthing:escapers:1.0.0")
+implementation("org.cthing:escapers:2.0.0")
 ```
 
 Escaping for each supported language follows the pattern:
