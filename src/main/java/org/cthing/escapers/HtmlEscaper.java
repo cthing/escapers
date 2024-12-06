@@ -138,6 +138,7 @@ import org.jspecify.annotations.Nullable;
  *         </tr>
  *     </tbody>
  * </table>
+ *
  * <p>
  * Characters not listed in the above table are not included in the output (e.g. the null character 0x00 is dropped).
  * </p>
@@ -168,6 +169,7 @@ public final class HtmlEscaper extends AbstractEscaper {
          * (&amp;pound;). See
          * <a href="https://www.w3.org/TR/html40/sgml/entities.html#h-24.2">Section 24.2</a> of the HTML 4
          * specification for the complete list of ISO Latin-1 character entities.
+         *
          * <p>
          * Note that markup-significant HTML escapes are always applied (e.g. &amp;lt;, &amp;quot;) regardless of
          * the use of this option.
@@ -182,6 +184,7 @@ public final class HtmlEscaper extends AbstractEscaper {
          * <a href="https://www.w3.org/TR/html40/sgml/entities.html#h-24.3">Section 24.3</a> and
          * <a href="https://www.w3.org/TR/html40/sgml/entities.html#h-24.4">Section 24.4 </a> of the HTML 4
          * specification for the complete list of these character entities.
+         *
          * <p>
          * Note that markup-significant HTML escapes are always applied (e.g. &amp;lt;, &amp;quot;) regardless of
          * the use of this option.

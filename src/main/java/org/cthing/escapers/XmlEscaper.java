@@ -136,6 +136,7 @@ import org.jspecify.annotations.Nullable;
  *         </tr>
  *     </tbody>
  * </table>
+ *
  * <p>
  * The characters in the above table correspond to the <a href="https://www.w3.org/TR/xml/#charsets">valid XML
  * characters</a>. Invalid characters are not included in the output (e.g. the null character 0x00 is dropped).

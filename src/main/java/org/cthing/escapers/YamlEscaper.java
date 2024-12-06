@@ -21,6 +21,7 @@ import org.jspecify.annotations.Nullable;
  * <a href="https://yaml.org/spec/1.2.2/#57-escaped-characters">Escaped Characters</a> section of the
  * <a href="https://yaml.org/spec/1.2.2/">YAML Ain’t Markup Language</a> specification. The returned string
  * may be surrounded by single or double quotes depending on the characters found in the string.
+ *
  * <p>
  * The returned string will be surrounded by double quotes under the following conditions:
  * </p>
@@ -28,6 +29,7 @@ import org.jspecify.annotations.Nullable;
  *     <li>The string contains a character that requires escaping</li>
  *     <li>The string contains a double quote, single quote or backslash</li>
  * </ul>
+ *
  * <p>
  * The returned string will be surrounded by single quotes under the following conditions
  * </p>
@@ -39,9 +41,11 @@ import org.jspecify.annotations.Nullable;
  *     <li>The string end with the document end character sequence</li>
  *     <li>The string contains any of the following characters: {@literal # , [ ] { } & * ! | > % @ ? : - /}</li>
  * </ul>
+ *
  * <p>
  * If none of the above conditions apply, the string is returned without quotes.
  * </p>
+ *
  * <p>
  * Characters are escaped according to the following table:
  * </p>
