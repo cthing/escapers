@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [2.1.0] - 2026-06-29
+
+### Added
+
+- Added the `SqlEscaper` to perform escaping in SQL literal strings
+
 ## [2.0.0] - 2024-10-25
 
 ### Changed
@@ -22,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release
 
-[unreleased]: https://github.com/cthing/escapers/compare/2.0.0...HEAD
+[unreleased]: https://github.com/cthing/escapers/compare/2.1.0...HEAD
+[2.1.0]: https://github.com/cthing/escapers/releases/tag/2.1.0
 [2.0.0]: https://github.com/cthing/escapers/releases/tag/2.0.0
 [1.0.0]: https://github.com/cthing/escapers/releases/tag/1.0.0

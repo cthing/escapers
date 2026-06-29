@@ -30,7 +30,7 @@ plugins {
     alias(libs.plugins.versions)
 }
 
-version = ProjectVersion("2.1.0", BuildType.release)
+version = ProjectVersion("2.1.1", BuildType.snapshot)
 group = "org.cthing"
 description = "A Java library for escaping strings for use in various languages (e.g. XML)."
 
