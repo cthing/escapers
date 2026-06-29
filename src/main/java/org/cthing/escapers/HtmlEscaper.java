@@ -17,7 +17,7 @@ import org.jspecify.annotations.Nullable;
 
 
 /**
- * Escapes string and character arrays using numeric and named HTML character entities. Markup-significant characters
+ * Escapes strings and character arrays using numeric and named HTML character entities. Markup-significant characters
  * (e.g. &lt;) are always escaped. Options are provided to escape additional characters using numeric or named
  * character entities. Characters are escaped according to the following table:
  * <table style="border: 1px solid; border-collapse: collapse;">

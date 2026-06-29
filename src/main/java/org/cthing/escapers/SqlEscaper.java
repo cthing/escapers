@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 C Thing Software
+ * Copyright 2026 C Thing Software
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -15,20 +15,35 @@ import org.jspecify.annotations.Nullable;
 
 
 /**
- * Escapes strings and character arrays according to
- * <a href="https://datatracker.ietf.org/doc/html/rfc4180">RFC-4180</a>. If a string contains a comma,
- * carriage return, line feed, or a double quote, the string must be surrounded by double quotes and
- * any double quotes within the string must be replaced with two consecutive double quotes
- * (i.e. a single {@literal "} becomes {@literal ""}).
+ * Escapes strings and character arrays for use as SQL string literals. The characters that are escaped are those
+ * that pose a security risk or could cause a syntax error if used unescaped in a SQL literal string.
+ * <br/><br/>
+ * <table>
+ *     <caption>SQL Character Escaping</caption>
+ *     <tr><th>Character</th><th>Escaped Character</th><th>Description</th></tr>
+ *     <tr><td>{@code \0}</td><td>{@code \\0}</td><td>Null</td></tr>
+ *     <tr><td>{@code \n}</td><td>{@code \\n}</td><td>Newline</td></tr>
+ *     <tr><td>{@code \r}</td><td>{@code \\r}</td><td>Carriage return</td></tr>
+ *     <tr><td>{@code \\}</td><td>{@code \\\\}</td><td>Backslash</td></tr>
+ *     <tr><td>{@code '}</td><td>{@code \\'}</td><td>Single quote</td></tr>
+ *     <tr><td>{@code "}</td><td>{@code \\"}</td><td>Double quote</td></tr>
+ *     <tr><td>{@code \032}</td><td>{@code \\Z}</td><td>Ctrl-Z</td></tr>
+ * </table>
+ *
+ * <p>
+ * <b>Note</b>: Normally the escaping of SQL strings should be done using a {@link java.sql.PreparedStatement}.
+ * Use {@link SqlEscaper} when it is not possible to use JDBC (e.g. setting the root password on a new MySQL
+ * installation).
+ * </p>
  */
-public final class CsvEscaper extends AbstractEscaper {
+public final class SqlEscaper extends AbstractEscaper {
 
     @NoCoverageGenerated
-    private CsvEscaper() {
+    private SqlEscaper() {
     }
 
     /**
-     * Applies CSV escaping to the specified string.
+     * Applies SQL escaping to the specified string.
      *
      * @param charSequence String to escape
      * @return Escaped string or {@code null} if {@code null} was passed in.
@@ -40,7 +55,7 @@ public final class CsvEscaper extends AbstractEscaper {
     }
 
     /**
-     * Applies CSV escaping to the specified string and writes the result to the specified writer.
+     * Applies SQL escaping to the specified string and writes the result to the specified writer.
      *
      * @param charSequence String to escape
      * @param writer Writer to which the escaped string is written. Will not be closed by this method.
@@ -54,18 +69,18 @@ public final class CsvEscaper extends AbstractEscaper {
     }
 
     /**
-     * Applies CSV escaping to the specified character array.
+     * Applies SQL escaping to the specified character array.
      *
      * @param charArr Character array to escape
      * @return Escaped string or {@code null} if {@code null} was passed in.
      */
     @Nullable
-    public static String escape(final char @Nullable[] charArr) {
+    public static String escape(final char @Nullable [] charArr) {
         return (charArr == null) ? null : escape(index -> Character.codePointAt(charArr, index), 0, charArr.length);
     }
 
     /**
-     * Applies CSV escaping to the specified character array.
+     * Applies SQL escaping to the specified character array.
      *
      * @param charArr Character array to escape
      * @param offset Start index in array
@@ -73,26 +88,26 @@ public final class CsvEscaper extends AbstractEscaper {
      * @return Escaped string or {@code null} if {@code null} was passed in.
      */
     @Nullable
-    public static String escape(final char @Nullable[] charArr, final int offset, final int length) {
+    public static String escape(final char @Nullable [] charArr, final int offset, final int length) {
         return (charArr == null) ? null : escape(index -> Character.codePointAt(charArr, index), offset, length);
     }
 
     /**
-     * Applies CSV escaping to the specified character array and writes the result to the specified writer.
+     * Applies SQL escaping to the specified character array and writes the result to the specified writer.
      *
      * @param charArr Character array to escape
      * @param writer Writer to which the escaped string is written. Will not be closed by this method.
      * @throws IOException if there was a problem writing the escaped string
      * @throws IllegalArgumentException if the writer is {@code null}
      */
-    public static void escape(final char @Nullable[] charArr, final Writer writer) throws IOException {
+    public static void escape(final char @Nullable [] charArr, final Writer writer) throws IOException {
         if (charArr != null) {
             escape(index -> Character.codePointAt(charArr, index), 0, charArr.length, writer);
         }
     }
 
     /**
-     * Applies CSV escaping to the specified character array and writes the result to the specified writer.
+     * Applies SQL escaping to the specified character array and writes the result to the specified writer.
      *
      * @param charArr Character array to escape
      * @param offset Start index in array
@@ -101,7 +116,7 @@ public final class CsvEscaper extends AbstractEscaper {
      * @throws IOException if there was a problem writing the escaped string
      * @throws IllegalArgumentException if the writer is {@code null}
      */
-    public static void escape(final char @Nullable[] charArr, final int offset, final int length, final Writer writer)
+    public static void escape(final char @Nullable [] charArr, final int offset, final int length, final Writer writer)
             throws IOException {
         if (charArr != null) {
             escape(index -> Character.codePointAt(charArr, index), offset, length, writer);
@@ -124,34 +139,28 @@ public final class CsvEscaper extends AbstractEscaper {
             throw new IndexOutOfBoundsException("length must be greater than or equal to 0");
         }
 
-        final StringBuilder sb = new StringBuilder();
-
-        boolean requiresQuotes = false;
         int index = offset;
         final int end = offset + length;
         while (index < end) {
             final int cp = codePointProvider.codePointAt(index);
             final int charCount = Character.charCount(cp);
             switch (cp) {
-                case ',', '\n', '\r' -> {
-                    sb.appendCodePoint(cp);
-                    requiresQuotes = true;
+                case '\0' -> writer.write("\\0");
+                case '\n' -> writer.write("\\n");
+                case '\r' -> writer.write("\\r");
+                case '\\' -> writer.write("\\\\");
+                case '\'' -> writer.write("\\'");
+                case '"' -> writer.write("\\\"");
+                case '\032' -> writer.write("\\Z");
+                default -> {
+                    if (charCount == 1) {
+                        writer.write(cp);
+                    } else {
+                        writer.write(Character.toChars(cp));
+                    }
                 }
-                case '"' -> {
-                    sb.append("\"\"");
-                    requiresQuotes = true;
-                }
-                default -> sb.appendCodePoint(cp);
             }
             index += charCount;
-        }
-
-        if (requiresQuotes) {
-            writer.write('"');
-            writer.write(sb.toString());
-            writer.write('"');
-        } else {
-            writer.write(sb.toString());
         }
     }
 }
