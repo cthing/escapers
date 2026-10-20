@@ -4,7 +4,15 @@
 [![Maven Central Version](https://img.shields.io/maven-central/v/org.cthing/escapers)](https://central.sonatype.com/artifact/org.cthing/escapers)
 [![javadoc](https://javadoc.io/badge2/org.cthing/escapers/javadoc.svg)](https://javadoc.io/doc/org.cthing/escapers)
 
-A Java library that escapes strings for CSV, HTML, Java, JavaScript, JSON, XML and YAML.
+A Java library that escapes strings for:
+* CSV
+* HTML
+* Java
+* JavaScript
+* JSON
+* URL path, query and fragment
+* XML
+* YAML
 
 ## Usage
 The library is available from [Maven Central](https://repo.maven.apache.org/maven2/org/cthing/escapers/) using the
@@ -13,12 +21,12 @@ following Maven dependency:
 <dependency>
   <groupId>org.cthing</groupId>
   <artifactId>escapers</artifactId>
-  <version>2.1.0</version>
+  <version>2.2.0</version>
 </dependency>
 ```
 or the following Gradle dependency:
 ```kotlin
-implementation("org.cthing:escapers:2.1.0")
+implementation("org.cthing:escapers:2.2.0")
 ```
 
 Escaping for each supported language follows the pattern:
