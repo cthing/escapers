@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Added
+
+- Added the `UrlFormEscaper`, `UrlFragmentEscaper`, and `UrlPathEscaper` to perform escaping of
+  the query, fragment and path portions of a URL respectively.
+
 ## [2.1.0] - 2026-06-29
 
 ### Added

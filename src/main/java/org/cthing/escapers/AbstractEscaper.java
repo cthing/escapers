@@ -61,7 +61,7 @@ abstract class AbstractEscaper {
     }
 
     /**
-     * Write the specified code point as a Unicode escape.
+     * Writes the specified code point as a Unicode escape.
      *
      * @param cp Code point to write
      * @param writer Destination writer
@@ -70,5 +70,38 @@ abstract class AbstractEscaper {
     protected static void escapeUnicode(final int cp, final Writer writer) throws IOException {
         writer.write("\\u");
         HexUtils.writeHex4(cp, writer);
+    }
+
+    /**
+     * Writes the specified code point in a percent escaped UTF-8 encoded format. The UTF-8 encoding is
+     * performed in compliance with ISO-10646 Section 9.1. The percent escaping is performed in compliance
+     * with RFC 3986 section 2.1. This method performs escapes regardless of all code points. Any special
+     * handling of characters (e.g. unreserved, spaces) must take place external to this method.
+     *
+     * @param cp Code point to write
+     * @param writer Destination writer
+     * @throws IOException if there was a problem writing the escaped code point.
+     */
+    protected static void escapePercent(final int cp, final Writer writer) throws IOException {
+        if (cp <= 0x7F) {
+            writePercentByte(cp, writer);
+        } else if (cp <= 0x7FF) {
+            writePercentByte(0xC0 | (cp >>> 6), writer);
+            writePercentByte(0x80 | (cp & 0x3F), writer);
+        } else if (cp <= 0xFFFF) {
+            writePercentByte(0xE0 | (cp >>> 12), writer);
+            writePercentByte(0x80 | ((cp >>> 6) & 0x3F), writer);
+            writePercentByte(0x80 | (cp & 0x3F), writer);
+        } else {
+            writePercentByte(0xF0 | (cp >>> 18), writer);
+            writePercentByte(0x80 | ((cp >>> 12) & 0x3F), writer);
+            writePercentByte(0x80 | ((cp >>> 6) & 0x3F), writer);
+            writePercentByte(0x80 | (cp & 0x3F), writer);
+        }
+    }
+
+    private static void writePercentByte(final int b, final Writer writer) throws IOException {
+        writer.write('%');
+        HexUtils.writeHex2(b, writer);
     }
 }

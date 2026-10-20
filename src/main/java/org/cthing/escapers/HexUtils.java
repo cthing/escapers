@@ -32,7 +32,7 @@ final class HexUtils {
      * @throws IOException if there is a problem writing the string
      */
     static void writeHex2(final int value, final Writer writer) throws IOException {
-        writer.write(HEX_DIGITS[value >> 4 & 0xF]);
+        writer.write(HEX_DIGITS[value >>> 4 & 0xF]);
         writer.write(HEX_DIGITS[value & 0xF]);
     }
 
@@ -46,8 +46,8 @@ final class HexUtils {
      * @throws IOException if there is a problem writing the string
      */
     static void writeHex4(final int value, final Writer writer) throws IOException {
-        writer.write(HEX_DIGITS[value >> 12 & 0xF]);
-        writer.write(HEX_DIGITS[value >> 8 & 0xF]);
+        writer.write(HEX_DIGITS[value >>> 12 & 0xF]);
+        writer.write(HEX_DIGITS[value >>> 8 & 0xF]);
         writeHex2(value, writer);
     }
 
@@ -60,10 +60,10 @@ final class HexUtils {
      * @throws IOException if there is a problem writing the string
      */
     static void writeHex8(final int value, final Writer writer) throws IOException {
-        writer.write(HEX_DIGITS[value >> 28 & 0xF]);
-        writer.write(HEX_DIGITS[value >> 24 & 0xF]);
-        writer.write(HEX_DIGITS[value >> 20 & 0xF]);
-        writer.write(HEX_DIGITS[value >> 16 & 0xF]);
+        writer.write(HEX_DIGITS[value >>> 28 & 0xF]);
+        writer.write(HEX_DIGITS[value >>> 24 & 0xF]);
+        writer.write(HEX_DIGITS[value >>> 20 & 0xF]);
+        writer.write(HEX_DIGITS[value >>> 16 & 0xF]);
         writeHex4(value, writer);
     }
 
