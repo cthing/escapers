@@ -11,6 +11,7 @@
  *     <li>Java</li>
  *     <li>JavaScript</li>
  *     <li>JSON</li>
+ *     <li>URL path, query and fragment</li>
  *     <li>XML</li>
  *     <li>YAML</li>
  * </ul>
